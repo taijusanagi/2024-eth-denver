@@ -7,7 +7,7 @@ export default function Home() {
     <main
       className={`${inter.className}`}
     >
-      Home
+      Creator
     </main>
   );
 }
