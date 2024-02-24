@@ -11,27 +11,14 @@ export default function Home() {
   const [secondIpImage, setSecondIpImage] = useState("https://placehold.jp/500x500.png");
   const [combinedIpImage, setCombinedIpImage] = useState("https://placehold.jp/500x500.png");
   const [detailIpImage, setDetailIpImage] = useState("https://placehold.jp/500x500.png");
-
-  const childIps = [
-    {
-      image: "https://placehold.jp/500x500.png",
-    },
-    {
-      image: "https://placehold.jp/500x500.png",
-    },
-    {
-      image: "https://placehold.jp/500x500.png",
-    },
-    {
-      image: "https://placehold.jp/500x500.png",
-    },
-    {
-      image: "https://placehold.jp/500x500.png",
-    },
-    {
-      image: "https://placehold.jp/500x500.png",
-    },
-  ];
+  const [childIpImages, setChildIpImages] = useState([
+    "https://placehold.jp/500x500.png",
+    "https://placehold.jp/500x500.png",
+    "https://placehold.jp/500x500.png",
+    "https://placehold.jp/500x500.png",
+    "https://placehold.jp/500x500.png",
+    "https://placehold.jp/500x500.png",
+  ]);
 
   return (
     <main
@@ -74,7 +61,7 @@ export default function Home() {
             </button>
           </nav>
         </div>
-        <div className="bg-white backdrop-blur-lg p-8 rounded-lg shadow-2xl w-full max-w-xl mx-auto space-y-6">
+        <div className="bg-white backdrop-blur-lg py-8 px-6 rounded-lg shadow-2xl w-full max-w-xl mx-auto space-y-6">
           {mode == "createIp" && (
             <div>
               <h2 className="text-xl font-semibold text-gray-800 mb-4">Create IP</h2>
@@ -165,7 +152,7 @@ export default function Home() {
         </div>
       </div>
       {isModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-30 backdrop-blur-sm flex justify-center items-center">
+        <div className="fixed inset-0 bg-black bg-opacity-30 backdrop-blur-sm flex justify-center items-center p-4">
           <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full max-h-[90vh] overflow-y-auto">
             {mode == "createIp" && (
               <div>
@@ -262,14 +249,13 @@ export default function Home() {
                       </div>
                     )}
                   </div>
-                  {/* Child IPs List using Grid */}
                   <div className="mt-4">
                     <label className="block text-sm font-medium text-gray-700 mb-1">Child IPs</label>
                     <div className="grid grid-cols-4 gap-4">
-                      {childIps.map((childIp, index) => (
-                        <div key={index} className="col-span-1">
+                      {childIpImages.map((image, index) => (
+                        <div key={`child_ip_${index + 1}`} className="col-span-1">
                           <img
-                            src={childIp.image}
+                            src={image}
                             alt={`Child IP ${index + 1}`}
                             className="w-full h-auto rounded-md shadow-sm"
                           />
