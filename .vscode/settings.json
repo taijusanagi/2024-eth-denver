@@ -4,5 +4,8 @@
   "editor.codeActionsOnSave": {
     "source.fixAll.eslint": true
   },
-  "prettier.documentSelectors": ["**/*.sol"]
+  "prettier.documentSelectors": [
+    "**/*.sol"
+  ],
+  "solidity.compileUsingRemoteVersion": "v0.8.24+commit.e11b9ed9"
 }
