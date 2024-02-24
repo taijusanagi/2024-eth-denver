@@ -1,9 +1,19 @@
-import { Inter } from "next/font/google";
-import { ReactNode, useState } from "react";
+"use client";
 
+import { Inter } from "next/font/google";
+import { ReactNode, useCallback, useEffect, useState } from "react";
+import dynamic from "next/dynamic";
+
+import { useRegisterRootIp } from "@story-protocol/react";
+// import { StoryClient, StoryConfig } from "@story-protocol/core-sdk";
+import { ConnectButton } from "@rainbow-me/rainbowkit";
+import { http, useClient } from "wagmi";
+import { Account } from "viem";
 const inter = Inter({ subsets: ["latin"] });
 
-export default function Home() {
+export default function CreatorPage() {
+  // const client = useClient();
+
   const [mode, setMode] = useState<"createIp" | "combineIp" | "detail">("createIp");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [createdIpImage, setCreatedIpImage] = useState("https://placehold.jp/500x500.png");
@@ -20,6 +30,51 @@ export default function Home() {
     "https://placehold.jp/500x500.png",
   ]);
 
+  const { writeContractAsync, isPending: isPendingInWallet, data: txHash } = useRegisterRootIp();
+
+  const [tokenId, setTokenId] = useState("143");
+  const [isRegisteringIp, setIsRegisteringIp] = useState(false);
+  const [registerIpTxHash, setRegisterIpTxHash] = useState("");
+  const policyId = BigInt(1);
+  const MOCK_NFT_ADDRESS = "0x5E28ab57D09C589ff5C7a2970d911178E97Eab81";
+  const ipName = "";
+  const contentHash = BigInt(0);
+  const externalURL = "";
+
+  // const config: StoryConfig = {
+  //   transport: http(process.env.RPC_PROVIDER_URL),
+  //   account: client?.account as Account as any,
+  // };
+
+  // const [registerRootIp, setRegisterRootIp] = useState<any>(null);
+
+  // useEffect(() => {
+  //   import("@story-protocol/react")
+  //     .then(({ useRegisterRootIp }) => {
+  //       setRegisterRootIp(useRegisterRootIp);
+  //     })
+  //     .catch((error) => console.error("Failed to load the hook:", error));
+  // }, []);
+
+  // const { writeContractAsync, isPending } = registerRootIp
+  //   ? registerRootIp()
+  //   : { writeContractAsync: null, isPending: false };
+
+  // const handleRegisterIp = useCallback(async () => {
+  //   if (!tokenId || isRegisteringIp) return;
+  //   setIsRegisteringIp(true);
+  //   try {
+  //     const registerIpTxHash = await writeContractAsync({
+  //       functionName: "registerRootIp",
+  //       args: [policyId, MOCK_NFT_ADDRESS, BigInt(tokenId), ipName, contentHash, externalURL],
+  //     });
+  //     setRegisterIpTxHash(registerIpTxHash);
+  //   } catch (e) {
+  //     console.error(e);
+  //     setIsRegisteringIp(false);
+  //   }
+  // }, [tokenId, isRegisteringIp, writeContractAsync]);
+
   return (
     <main
       className={`min-h-screen flex flex-col bg-gradient-to-br from-violet-200 to-pink-200 font-poppins ${inter.className}`}
@@ -27,9 +82,7 @@ export default function Home() {
       <header className="w-full py-4 bg-white backdrop-blur-md shadow-md">
         <div className="flex justify-between items-center px-4">
           <h1 className="text-xl font-semibold text-gray-800">Creator Tool</h1>
-          <button className="py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none">
-            Connect Wallet
-          </button>
+          <ConnectButton />
         </div>
       </header>
       <div className="flex flex-col justify-center items-center py-12 px-4">
@@ -171,7 +224,7 @@ export default function Home() {
                   <button
                     type="button"
                     className="py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none"
-                    onClick={() => setIsModalOpen(false)}
+                    // onClick={() => handleRegisterIp()}
                   >
                     Confirm
                   </button>
