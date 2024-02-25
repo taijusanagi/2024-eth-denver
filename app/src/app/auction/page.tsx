@@ -1,18 +1,15 @@
 "use client";
 
-import { Inter } from "next/font/google";
-import { useState } from "react";
+import React, { useState } from "react";
 
-const inter = Inter({ subsets: ["latin"] });
+import { Inter } from "next/font/google";
 
 export default function Home() {
   const [mode, setMode] = useState<"bid">("bid");
   const [assetImage, setAssetIpImage] = useState("https://placehold.jp/500x500.png");
 
   return (
-    <main
-      className={`min-h-screen flex flex-col bg-gradient-to-br from-gray-700 to-gray-950 font-poppins ${inter.className}`}
-    >
+    <main className="min-h-screen flex flex-col bg-gradient-to-br from-gray-700 to-gray-950 font-poppins">
       <header className="w-full py-4 bg-transparent backdrop-blur-md shadow-md">
         <div className="flex justify-between items-center px-4">
           <h1 className="text-xl font-semibold text-white">Auction</h1>

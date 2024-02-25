@@ -1,19 +1,22 @@
 "use client";
 
-import { Inter } from "next/font/google";
-import { ReactNode, useCallback, useEffect, useState } from "react";
-import dynamic from "next/dynamic";
+import React, { useCallback, useState } from "react";
 
-import { useRegisterRootIp } from "@story-protocol/react";
-// import { StoryClient, StoryConfig } from "@story-protocol/core-sdk";
+import { Inter } from "next/font/google";
+
+import {
+  useRegisterRootIp,
+  useMintLicense,
+  useReadIpAssetRegistryIpId,
+  useReadPolicy,
+  // useRegisterPolicy,
+  useRegisterPILPolicy,
+} from "@story-protocol/react";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
-import { http, useClient } from "wagmi";
-import { Account } from "viem";
-const inter = Inter({ subsets: ["latin"] });
+import { useAccount } from "wagmi";
+import { zeroAddress } from "viem";
 
 export default function CreatorPage() {
-  // const client = useClient();
-
   const [mode, setMode] = useState<"createIp" | "combineIp" | "detail">("createIp");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [createdIpImage, setCreatedIpImage] = useState("https://placehold.jp/500x500.png");
@@ -30,7 +33,10 @@ export default function CreatorPage() {
     "https://placehold.jp/500x500.png",
   ]);
 
-  const { writeContractAsync, isPending: isPendingInWallet, data: txHash } = useRegisterRootIp();
+  const { address } = useAccount();
+  const reigisterRootIp = useRegisterRootIp();
+  const mintLicence = useMintLicense();
+  const registerPILPolicy = useRegisterPILPolicy();
 
   const [tokenId, setTokenId] = useState("143");
   const [isRegisteringIp, setIsRegisteringIp] = useState(false);
@@ -38,47 +44,85 @@ export default function CreatorPage() {
   const policyId = BigInt(1);
   const MOCK_NFT_ADDRESS = "0x5E28ab57D09C589ff5C7a2970d911178E97Eab81";
   const ipName = "";
-  const contentHash = BigInt(0);
+  const contentHash = "0x0000000000000000000000000000000000000000000000000000000000000000";
+  const royaltyContext = "0x";
   const externalURL = "";
+  const ipId = "0xF6fcBdea94Eca2A12132b2033D7596e93F9ea78d";
 
-  // const config: StoryConfig = {
-  //   transport: http(process.env.RPC_PROVIDER_URL),
-  //   account: client?.account as Account as any,
-  // };
+  // const { data: pl } = useReadPolicy({
+  //   args: [BigInt(11155111), BigInt(1)],
+  // });
+  // console.log("pl", pl);
 
-  // const [registerRootIp, setRegisterRootIp] = useState<any>(null);
+  // const { data: licensorIpId } = useReadIpAssetRegistryIpId({
+  //   args: [BigInt(11155111), MOCK_NFT_ADDRESS, BigInt(tokenId ?? 0)],
+  // });
 
-  // useEffect(() => {
-  //   import("@story-protocol/react")
-  //     .then(({ useRegisterRootIp }) => {
-  //       setRegisterRootIp(useRegisterRootIp);
-  //     })
-  //     .catch((error) => console.error("Failed to load the hook:", error));
-  // }, []);
+  // console.log("licensorIpId", licensorIpId);
 
-  // const { writeContractAsync, isPending } = registerRootIp
-  //   ? registerRootIp()
-  //   : { writeContractAsync: null, isPending: false };
+  const handleRegisterIp = useCallback(async () => {
+    if (!address || !tokenId || isRegisteringIp) {
+      return;
+    }
+    setIsRegisteringIp(true);
+    try {
+      const registerIpTxHash = await reigisterRootIp.writeContractAsync({
+        functionName: "registerRootIp",
+        args: [policyId, MOCK_NFT_ADDRESS, BigInt(tokenId), ipName, contentHash, externalURL],
+      });
+      setRegisterIpTxHash(registerIpTxHash);
+    } catch (e) {
+      console.error(e);
+      setIsRegisteringIp(false);
+    }
+  }, [tokenId, isRegisteringIp, reigisterRootIp]);
 
-  // const handleRegisterIp = useCallback(async () => {
-  //   if (!tokenId || isRegisteringIp) return;
-  //   setIsRegisteringIp(true);
-  //   try {
-  //     const registerIpTxHash = await writeContractAsync({
-  //       functionName: "registerRootIp",
-  //       args: [policyId, MOCK_NFT_ADDRESS, BigInt(tokenId), ipName, contentHash, externalURL],
-  //     });
-  //     setRegisterIpTxHash(registerIpTxHash);
-  //   } catch (e) {
-  //     console.error(e);
-  //     setIsRegisteringIp(false);
-  //   }
-  // }, [tokenId, isRegisteringIp, writeContractAsync]);
+  const policyParameters = {
+    attribution: true, // Whether or not attribution is required when reproducing the work
+    commercialUse: false, // Whether or not the work can be used commercially
+    commercialAttribution: false, // Whether or not attribution is required when reproducing the work commercially
+    commercializerChecker: zeroAddress, // commercializers that are allowed to commercially exploit the work. If zero address, then no restrictions is enforced
+    commercializerCheckerData: "0x" as `0x${string}`, // Additional calldata for the commercializer checker
+    commercialRevShare: 0, // Percentage of revenue that must be shared with the licensor
+    derivativesAllowed: true, // Whether or not the licensee can create derivatives of his work
+    derivativesAttribution: true, // Whether or not attribution is required for derivatives of the work
+    derivativesApproval: false, // Whether or not the licensor must approve derivatives of the work before they can be linked to the licensor IP ID
+    derivativesReciprocal: false, // Whether or not the licensee must license derivatives of the work under the same terms
+    territories: ["USA", "CANADA"], // List of territories where the license is valid. If empty, global
+    distributionChannels: [], // List of distribution channels where the license is valid. Empty if no restrictions.
+    contentRestrictions: [], //
+  };
+
+  const registrationParams = {
+    transferable: true, // Whether or not attribution is required when reproducing the work
+    royaltyPolicy: zeroAddress, // Address of a royalty policy contract that will handle royalty payments
+    mintingFee: BigInt(0),
+    mintingFeeToken: zeroAddress,
+    policy: policyParameters,
+  };
+
+  async function handleRegisterPILPolicy() {
+    console.log(registrationParams);
+
+    await registerPILPolicy.writeContractAsync({
+      functionName: "registerPolicy",
+      args: [registrationParams],
+    });
+  }
+
+  function handleMintLicence() {
+    console.log("handleMintLicence");
+    if (!address) {
+      return;
+    }
+    mintLicence.writeContractAsync({
+      functionName: "mintLicense",
+      args: [policyId, ipId, BigInt(1), address, royaltyContext],
+    });
+  }
 
   return (
-    <main
-      className={`min-h-screen flex flex-col bg-gradient-to-br from-violet-200 to-pink-200 font-poppins ${inter.className}`}
-    >
+    <main className="min-h-screen flex flex-col bg-gradient-to-br from-violet-200 to-pink-200 font-poppins">
       <header className="w-full py-4 bg-white backdrop-blur-md shadow-md">
         <div className="flex justify-between items-center px-4">
           <h1 className="text-xl font-semibold text-gray-800">Creator Tool</h1>
@@ -224,7 +268,12 @@ export default function CreatorPage() {
                   <button
                     type="button"
                     className="py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none"
-                    // onClick={() => handleRegisterIp()}
+                    onClick={() => {
+                      // handleRegisterIp();
+                      // setIsModalOpen(false);
+                      // handleMintLicence();
+                      handleRegisterPILPolicy();
+                    }}
                   >
                     Confirm
                   </button>

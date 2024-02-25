@@ -1,5 +1,7 @@
 "use client";
 
+import React from "react";
+
 import { RainbowKitProvider, getDefaultConfig } from "@rainbow-me/rainbowkit";
 import { WagmiProvider } from "wagmi";
 import { sepolia } from "wagmi/chains";
