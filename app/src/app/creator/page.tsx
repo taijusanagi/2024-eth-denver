@@ -18,8 +18,11 @@ import { useAccount, useWalletClient } from "wagmi";
 import { zeroAddress } from "viem";
 import { ethers } from "ethers";
 
-import { LicensingModuleAddress, licensingModuleABI } from "@/lib/storyprotocol";
+import e from "@story-protocol/core-sdk";
 
+import { LicensingModuleAddress, encodeFrameworkData, licensingModuleABI, typedDataToBytes } from "@/lib/storyprotocol";
+
+// e.LicenseClient.
 console.log(ethers);
 
 export default function CreatorPage() {
@@ -109,38 +112,6 @@ export default function CreatorPage() {
     policy: policyParameters,
   };
 
-  const policyTypes = [
-    "bool", // attribution
-    "bool", // commercialUse
-    "bool", // commercialAttribution
-    "address", // commercializerChecker
-    "bytes", // commercializerCheckerData
-    "uint32", // commercialRevShare
-    "bool", // derivativesAllowed
-    "bool", // derivativesAttribution
-    "bool", // derivativesApproval
-    "bool", // derivativesReciprocal
-    "string[]", // territories
-    "string[]", // distributionChannels
-    "string[]", // contentRestrictions
-  ];
-
-  const policyValues = [
-    policyParameters.attribution,
-    policyParameters.commercialUse,
-    policyParameters.commercialAttribution,
-    policyParameters.commercializerChecker,
-    policyParameters.commercializerCheckerData,
-    policyParameters.commercialRevShare,
-    policyParameters.derivativesAllowed,
-    policyParameters.derivativesAttribution,
-    policyParameters.derivativesApproval,
-    policyParameters.derivativesReciprocal,
-    policyParameters.territories,
-    policyParameters.distributionChannels,
-    policyParameters.contentRestrictions,
-  ];
-
   // const types = ["uint256", "address"];
   // const values = [42, "0x0000000000000000000000000000000000000001"];
   // ethers.AbiCoder.defaultAbiCoder.
@@ -158,21 +129,22 @@ export default function CreatorPage() {
   //   ],
   // });
   // console.log("test", test);
-  useEffect(() => {
-    const encodedPolicy = ethers.AbiCoder.defaultAbiCoder().encode(policyTypes, policyValues);
-    const encodedRev = ethers.AbiCoder.defaultAbiCoder().encode(["uint256"], [0]);
+  const get = () => {
     const contract = new ethers.Contract(
       LicensingModuleAddress,
       licensingModuleABI,
-      ethers.getDefaultProvider(11155111)
+      new ethers.JsonRpcProvider("https://rpc.sepolia.ethpandaops.io")
     );
     contract
       .getPolicyId({
         isLicenseTransferable: registrationParams.transferable,
-        policyFramework: "0x50c3bcaa67d4ec3f285e4328451315ab0d9e539f",
-        frameworkData: encodedPolicy,
+        policyFramework: "0x50c3bCAA67D4eC3f285E4328451315Ab0D9e539f",
+        frameworkData: encodeFrameworkData(policyParameters),
         royaltyPolicy: registrationParams.royaltyPolicy,
-        royaltyData: encodedRev,
+        royaltyData: typedDataToBytes({
+          interface: "uint32",
+          data: [policyParameters.commercialRevShare],
+        }),
         mintingFee: registrationParams.mintingFee,
         mintingFeeToken: registrationParams.mintingFeeToken,
       })
@@ -180,7 +152,7 @@ export default function CreatorPage() {
         console.log("read");
         console.log(data);
       });
-  }, []);
+  };
 
   async function handleRegisterPILPolicy() {
     console.log(registrationParams);
@@ -257,6 +229,7 @@ export default function CreatorPage() {
                   <button
                     className="w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none"
                     onClick={() => {
+                      // get();
                       setIsModalOpen(true);
                     }}
                   >
@@ -353,6 +326,7 @@ export default function CreatorPage() {
                       // handleRegisterIp();
                       // setIsModalOpen(false);
                       // handleMintLicence();
+                      get();
                       handleRegisterPILPolicy();
                     }}
                   >
