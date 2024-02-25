@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 
 import { Inter } from "next/font/google";
 
@@ -11,12 +11,20 @@ import {
   useReadPolicy,
   // useRegisterPolicy,
   useRegisterPILPolicy,
+  useReadGetPolicyId,
 } from "@story-protocol/react";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
-import { useAccount } from "wagmi";
+import { useAccount, useWalletClient } from "wagmi";
 import { zeroAddress } from "viem";
+import { ethers } from "ethers";
+
+import { LicensingModuleAddress, licensingModuleABI } from "@/lib/storyprotocol";
+
+console.log(ethers);
 
 export default function CreatorPage() {
+  useWalletClient();
+
   const [mode, setMode] = useState<"createIp" | "combineIp" | "detail">("createIp");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [createdIpImage, setCreatedIpImage] = useState("https://placehold.jp/500x500.png");
@@ -85,7 +93,7 @@ export default function CreatorPage() {
     commercializerCheckerData: "0x" as `0x${string}`, // Additional calldata for the commercializer checker
     commercialRevShare: 0, // Percentage of revenue that must be shared with the licensor
     derivativesAllowed: true, // Whether or not the licensee can create derivatives of his work
-    derivativesAttribution: true, // Whether or not attribution is required for derivatives of the work
+    derivativesAttribution: false, // Whether or not attribution is required for derivatives of the work
     derivativesApproval: false, // Whether or not the licensor must approve derivatives of the work before they can be linked to the licensor IP ID
     derivativesReciprocal: false, // Whether or not the licensee must license derivatives of the work under the same terms
     territories: ["USA", "CANADA"], // List of territories where the license is valid. If empty, global
@@ -100,6 +108,79 @@ export default function CreatorPage() {
     mintingFeeToken: zeroAddress,
     policy: policyParameters,
   };
+
+  const policyTypes = [
+    "bool", // attribution
+    "bool", // commercialUse
+    "bool", // commercialAttribution
+    "address", // commercializerChecker
+    "bytes", // commercializerCheckerData
+    "uint32", // commercialRevShare
+    "bool", // derivativesAllowed
+    "bool", // derivativesAttribution
+    "bool", // derivativesApproval
+    "bool", // derivativesReciprocal
+    "string[]", // territories
+    "string[]", // distributionChannels
+    "string[]", // contentRestrictions
+  ];
+
+  const policyValues = [
+    policyParameters.attribution,
+    policyParameters.commercialUse,
+    policyParameters.commercialAttribution,
+    policyParameters.commercializerChecker,
+    policyParameters.commercializerCheckerData,
+    policyParameters.commercialRevShare,
+    policyParameters.derivativesAllowed,
+    policyParameters.derivativesAttribution,
+    policyParameters.derivativesApproval,
+    policyParameters.derivativesReciprocal,
+    policyParameters.territories,
+    policyParameters.distributionChannels,
+    policyParameters.contentRestrictions,
+  ];
+
+  // const types = ["uint256", "address"];
+  // const values = [42, "0x0000000000000000000000000000000000000001"];
+  // ethers.AbiCoder.defaultAbiCoder.
+
+  // const test = useReadGetPolicyId({
+  //   args: [
+  //     BigInt(11155111),
+  //     registrationParams.transferable,
+  //     "0x50c3bcaa67d4ec3f285e4328451315ab0d9e539f",
+  //     encodedPolicy,
+  //     registrationParams.royaltyPolicy,
+  //     encodedRev,
+  //     registrationParams.mintingFee,
+  //     registrationParams.mintingFeeToken,
+  //   ],
+  // });
+  // console.log("test", test);
+  useEffect(() => {
+    const encodedPolicy = ethers.AbiCoder.defaultAbiCoder().encode(policyTypes, policyValues);
+    const encodedRev = ethers.AbiCoder.defaultAbiCoder().encode(["uint256"], [0]);
+    const contract = new ethers.Contract(
+      LicensingModuleAddress,
+      licensingModuleABI,
+      ethers.getDefaultProvider(11155111)
+    );
+    contract
+      .getPolicyId({
+        isLicenseTransferable: registrationParams.transferable,
+        policyFramework: "0x50c3bcaa67d4ec3f285e4328451315ab0d9e539f",
+        frameworkData: encodedPolicy,
+        royaltyPolicy: registrationParams.royaltyPolicy,
+        royaltyData: encodedRev,
+        mintingFee: registrationParams.mintingFee,
+        mintingFeeToken: registrationParams.mintingFeeToken,
+      })
+      .then((data) => {
+        console.log("read");
+        console.log(data);
+      });
+  }, []);
 
   async function handleRegisterPILPolicy() {
     console.log(registrationParams);
