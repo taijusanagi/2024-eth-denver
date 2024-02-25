@@ -9,24 +9,45 @@ import {
   useMintLicense,
   useReadIpAssetRegistryIpId,
   useReadPolicy,
-  // useRegisterPolicy,
+  useRegisterPolicy,
   useRegisterPILPolicy,
+  // useIp
   useReadGetPolicyId,
+  useAddPolicyToIp,
+  useRegisterDerivativeIp,
 } from "@story-protocol/react";
+// import { Story } from "@story-protocol/core-sdk";
+
 import { ConnectButton } from "@rainbow-me/rainbowkit";
-import { useAccount, useWalletClient } from "wagmi";
+import { useAccount, useWalletClient, useWriteContract } from "wagmi";
 import { zeroAddress } from "viem";
 import { ethers } from "ethers";
 
-import e from "@story-protocol/core-sdk";
+// import e from "@story-protocol/core-sdk";
 
-import { LicensingModuleAddress, encodeFrameworkData, licensingModuleABI, typedDataToBytes } from "@/lib/storyprotocol";
+import {
+  LicensingModuleAddress,
+  licensingModuleABI,
+  mockERC721Address,
+  mockERC721ABI,
+  encodeFrameworkData,
+  typedDataToBytes,
+  encodeRoyaltyContext,
+  StoryAPIClient,
+  computeRoyaltyContext,
+  RoyaltyContext,
+} from "@/lib/storyprotocol";
 
 // e.LicenseClient.
 console.log(ethers);
 
+const provider = new ethers.JsonRpcProvider("https://rpc.sepolia.ethpandaops.io");
+
 export default function CreatorPage() {
   useWalletClient();
+
+  const client = useWalletClient();
+  const { writeContract } = useWriteContract();
 
   const [mode, setMode] = useState<"createIp" | "combineIp" | "detail">("createIp");
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -47,18 +68,24 @@ export default function CreatorPage() {
   const { address } = useAccount();
   const reigisterRootIp = useRegisterRootIp();
   const mintLicence = useMintLicense();
-  const registerPILPolicy = useRegisterPILPolicy();
+  const registerPolicy = useRegisterPILPolicy();
+  const addPolicyToIp = useAddPolicyToIp();
+  const registerDerivativeIp = useRegisterDerivativeIp();
+  // ("");
 
   const [tokenId, setTokenId] = useState("143");
   const [isRegisteringIp, setIsRegisteringIp] = useState(false);
   const [registerIpTxHash, setRegisterIpTxHash] = useState("");
-  const policyId = BigInt(1);
+  const policyId = BigInt(10);
   const MOCK_NFT_ADDRESS = "0x5E28ab57D09C589ff5C7a2970d911178E97Eab81";
   const ipName = "";
-  const contentHash = "0x0000000000000000000000000000000000000000000000000000000000000000";
+  const contentHash = "0x0000000000000000000000000000000000000000000000000000000000000001";
   const royaltyContext = "0x";
   const externalURL = "";
   const ipId = "0xF6fcBdea94Eca2A12132b2033D7596e93F9ea78d";
+
+  const royaltyPolicy = "0xda483fd6e6ecA1C2D913802F9a6B57a83b73029f";
+  const royaltyToken = "0x1219A0E87e617E6560104fA11cfd4f01FeB47362";
 
   // const { data: pl } = useReadPolicy({
   //   args: [BigInt(11155111), BigInt(1)],
@@ -72,6 +99,8 @@ export default function CreatorPage() {
   // console.log("licensorIpId", licensorIpId);
 
   const handleRegisterIp = useCallback(async () => {
+    console.log("handleRegisterIp");
+    console.log(policyId, MOCK_NFT_ADDRESS, BigInt(tokenId), ipName, contentHash, externalURL);
     if (!address || !tokenId || isRegisteringIp) {
       return;
     }
@@ -90,15 +119,15 @@ export default function CreatorPage() {
 
   const policyParameters = {
     attribution: true, // Whether or not attribution is required when reproducing the work
-    commercialUse: false, // Whether or not the work can be used commercially
+    commercialUse: true, // Whether or not the work can be used commercially
     commercialAttribution: false, // Whether or not attribution is required when reproducing the work commercially
     commercializerChecker: zeroAddress, // commercializers that are allowed to commercially exploit the work. If zero address, then no restrictions is enforced
     commercializerCheckerData: "0x" as `0x${string}`, // Additional calldata for the commercializer checker
-    commercialRevShare: 0, // Percentage of revenue that must be shared with the licensor
+    commercialRevShare: 20, // Percentage of revenue that must be shared with the licensor
     derivativesAllowed: true, // Whether or not the licensee can create derivatives of his work
-    derivativesAttribution: false, // Whether or not attribution is required for derivatives of the work
+    derivativesAttribution: true, // Whether or not attribution is required for derivatives of the work
     derivativesApproval: false, // Whether or not the licensor must approve derivatives of the work before they can be linked to the licensor IP ID
-    derivativesReciprocal: false, // Whether or not the licensee must license derivatives of the work under the same terms
+    derivativesReciprocal: true, // Whether or not the licensee must license derivatives of the work under the same terms
     territories: ["USA", "CANADA"], // List of territories where the license is valid. If empty, global
     distributionChannels: [], // List of distribution channels where the license is valid. Empty if no restrictions.
     contentRestrictions: [], //
@@ -106,7 +135,7 @@ export default function CreatorPage() {
 
   const registrationParams = {
     transferable: true, // Whether or not attribution is required when reproducing the work
-    royaltyPolicy: zeroAddress, // Address of a royalty policy contract that will handle royalty payments
+    royaltyPolicy, // Address of a royalty policy contract that will handle royalty payments
     mintingFee: BigInt(0),
     mintingFeeToken: zeroAddress,
     policy: policyParameters,
@@ -130,11 +159,7 @@ export default function CreatorPage() {
   // });
   // console.log("test", test);
   const get = () => {
-    const contract = new ethers.Contract(
-      LicensingModuleAddress,
-      licensingModuleABI,
-      new ethers.JsonRpcProvider("https://rpc.sepolia.ethpandaops.io")
-    );
+    const contract = new ethers.Contract(LicensingModuleAddress, licensingModuleABI, provider);
     contract
       .getPolicyId({
         isLicenseTransferable: registrationParams.transferable,
@@ -154,10 +179,10 @@ export default function CreatorPage() {
       });
   };
 
-  async function handleRegisterPILPolicy() {
-    console.log(registrationParams);
+  async function handleRegisterPolicy() {
+    console.log("registrationParams");
 
-    await registerPILPolicy.writeContractAsync({
+    await registerPolicy.writeContractAsync({
       functionName: "registerPolicy",
       args: [registrationParams],
     });
@@ -174,8 +199,118 @@ export default function CreatorPage() {
     });
   }
 
+  function handleAddPolicyToIp() {
+    console.log("handleAddPolicyToIp");
+    addPolicyToIp.writeContractAsync({
+      functionName: "addPolicyToIp",
+      args: [ipId, policyId],
+    });
+  }
+
   return (
     <main className="min-h-screen flex flex-col bg-gradient-to-br from-violet-200 to-pink-200 font-poppins">
+      <button
+        className="w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none"
+        onClick={() => {
+          console.log("mint");
+          // const signer = client
+          // const contract = new ethers.Contract(mockERC721Address, mockERC721ABI, client);
+          writeContract({ abi: mockERC721ABI, address: mockERC721Address, functionName: "mint", args: [address] });
+          // contract.mint(address);
+        }}
+      >
+        Mint
+      </button>
+      <button
+        className="w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none"
+        onClick={() => {
+          get();
+          handleRegisterPolicy();
+        }}
+      >
+        Create Policy
+      </button>
+      <button
+        className="w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none"
+        onClick={() => {
+          const policyId = 11;
+          const tokenId = 10;
+          console.log("handleRegisterIp", policyId, tokenId);
+
+          reigisterRootIp.writeContractAsync({
+            // functionName: "registerRootIp",
+            args: [policyId, mockERC721Address, BigInt(tokenId), ipName, contentHash, externalURL],
+          });
+        }}
+      >
+        Create Root IP
+      </button>
+      <button
+        className="w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none"
+        onClick={async () => {
+          const policyId = 11;
+          // const tokenId = 7;
+          const ipId = "0x87AF7B6f30f47E025906003e4e1F7Ac1793aD001";
+          console.log("handleRegisterIp", policyId, ipId);
+          const storyClient = new StoryAPIClient();
+          const royaltyPolicy = await storyClient.getRoyaltyPolicy(ipId);
+          console.log("royaltyPolicy", royaltyPolicy);
+
+          const royaltyContext: RoyaltyContext = {
+            targetAncestors: [],
+            targetRoyaltyAmount: [],
+            parentAncestors1: [],
+            parentAncestors2: [],
+            parentAncestorsRoyalties1: [],
+            parentAncestorsRoyalties2: [],
+          };
+
+          if (royaltyPolicy) {
+            royaltyContext.targetAncestors.push(...royaltyPolicy.targetAncestors);
+            const targetRoyaltyAmount = royaltyPolicy.targetRoyaltyAmount.map((e) => parseInt(e));
+            royaltyContext.targetRoyaltyAmount.push(...targetRoyaltyAmount);
+          }
+
+          console.log(royaltyContext);
+
+          const encodedRoyaltyContext = encodeRoyaltyContext(royaltyContext);
+          console.log(encodedRoyaltyContext);
+
+          mintLicence.writeContractAsync({
+            functionName: "mintLicense",
+            args: [policyId, ipId, BigInt(1), address, encodedRoyaltyContext],
+          });
+        }}
+      >
+        Create License
+      </button>
+      <button
+        className="w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none"
+        onClick={async () => {
+          const policyId = 11;
+          const tokenId = 12;
+          console.log("handleRegisterIp", policyId, tokenId);
+
+          const licenseIds = ["18"];
+          const client = new StoryAPIClient();
+          const royaltyContext = await computeRoyaltyContext(licenseIds, client);
+          const encodedRoyaltyContext = encodeRoyaltyContext(royaltyContext);
+          // console.log(royaltyContext);
+          registerDerivativeIp.writeContractAsync({
+            args: [
+              licenseIds,
+              mockERC721Address,
+              BigInt(tokenId),
+              ipName,
+              contentHash,
+              externalURL,
+              encodedRoyaltyContext,
+            ],
+          });
+        }}
+      >
+        Create Child IP
+      </button>
       <header className="w-full py-4 bg-white backdrop-blur-md shadow-md">
         <div className="flex justify-between items-center px-4">
           <h1 className="text-xl font-semibold text-gray-800">Creator Tool</h1>
@@ -324,10 +459,12 @@ export default function CreatorPage() {
                     className="py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none"
                     onClick={() => {
                       // handleRegisterIp();
+                      // handleRegisterPolicy();
                       // setIsModalOpen(false);
                       // handleMintLicence();
-                      get();
-                      handleRegisterPILPolicy();
+                      // get();
+                      // handleRegisterPILPolicy();
+                      // handleAddPolicyToIp();
                     }}
                   >
                     Confirm
