@@ -2,8 +2,6 @@
 
 import React, { useState } from "react";
 
-import { Inter } from "next/font/google";
-
 export default function Home() {
   const [mode, setMode] = useState<"bid">("bid");
   const [assetImage, setAssetIpImage] = useState("https://placehold.jp/500x500.png");
