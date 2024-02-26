@@ -22,7 +22,7 @@ export async function GET(req: Request) {
     messages: [{ role: "user", content }],
     model: "gpt-3.5-turbo",
   });
-  return Response.json({ ok: chatCompletion.choices[0].message.content });
+  return Response.json({ content: chatCompletion.choices[0].message.content });
 
   // return Response.json({ ok: "ok" });
 }

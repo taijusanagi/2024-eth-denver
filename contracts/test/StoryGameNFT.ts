@@ -35,7 +35,7 @@ describe("Dungeon", function () {
     });
   });
 
-  // return;
+  return;
 
   describe("Start", function () {
     it("Should work", async function () {

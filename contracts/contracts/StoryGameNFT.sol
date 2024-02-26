@@ -42,7 +42,7 @@ contract StoryGameNFT is FunctionsClient {
         "throw Error('Request failed');"
         "}"
         "const { data } = apiResponse;"
-        "return Functions.encodeString(data.ok);";
+        "return Functions.encodeString(data.content);";
 
     constructor(
         string memory _baseStory,
@@ -111,7 +111,7 @@ contract StoryGameNFT is FunctionsClient {
     function respond(address _sender, string memory _response) internal {
         uint256 ownStoryIndex = ownStoryIndexes[_sender];
         require(isWaitingResponse[ownStoryIndex], "invalid");
-        isWaitingResponse[ownStoryIndex] = true;
+        isWaitingResponse[ownStoryIndex] = false;
         responses[ownStoryIndex].push(_response);
     }
 

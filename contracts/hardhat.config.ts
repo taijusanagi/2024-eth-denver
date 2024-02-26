@@ -23,8 +23,8 @@ task("view", "start story")
   .setAction(async (taskArgs, hre) => {
     const address = taskArgs.address;
     const contract = await hre.viem.getContractAt("StoryGameNFT", address);
-    const base = await contract.read.baseStory();
-    console.log(base);
+    const allStories = await contract.read.getAllStories();
+    console.log(allStories);
   });
 
 task("start", "start story")
@@ -33,6 +33,17 @@ task("start", "start story")
     const address = taskArgs.address;
     const contract = await hre.viem.getContractAt("StoryGameNFT", address);
     const tx = await contract.write.start();
+    console.log(tx);
+  });
+
+task("interact", "interact with story")
+  .addParam("address", "Contract address")
+  .addParam("content", "Story content")
+  .setAction(async (taskArgs, hre) => {
+    const address = taskArgs.address;
+    const content = taskArgs.content;
+    const contract = await hre.viem.getContractAt("StoryGameNFT", address);
+    const tx = await contract.write.interact([content]);
     console.log(tx);
   });
 
