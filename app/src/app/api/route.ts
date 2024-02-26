@@ -10,7 +10,7 @@ export async function GET(req: Request) {
   // if (apiKey != process.env.API_KEY) {
   //   return Response.json({ error: "Bad Request" }, { status: 400 });
   // }
-  const chainId = searchParams.get("chainid") as string;
+  const chainId = searchParams.get("chainId") as string;
   const address = searchParams.get("address") as string;
   const index = searchParams.get("index") as string;
   const content = searchParams.get("content") as string;
