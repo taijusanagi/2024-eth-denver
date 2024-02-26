@@ -97,7 +97,7 @@ contract StoryGameNFT is FunctionsClient {
         args[0] = block.chainid.toString();
         args[1] = address(this).toHexString();
         args[2] = totalStoryIndex.toString();
-        args[3] = baseStory;
+        args[3] = _interaction;
         req.setArgs(args);
         bytes32 requestId = _sendRequest(
             req.encodeCBOR(),
@@ -139,7 +139,7 @@ contract StoryGameNFT is FunctionsClient {
         string[] memory allBaseStories = new string[](totalStoryIndex);
         string[][] memory allResponses = new string[][](totalStoryIndex);
         string[][] memory allInteractions = new string[][](totalStoryIndex);
-        for (uint256 i = 0; i < totalStoryIndex; i++) {
+        for (uint256 i = 0; i <= totalStoryIndex; i++) {
             allBaseStories[i] = baseStory;
             allResponses[i] = responses[i];
             allInteractions[i] = interactions[i];

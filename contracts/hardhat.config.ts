@@ -20,11 +20,13 @@ const config: HardhatUserConfig = {
 
 task("view", "start story")
   .addParam("address", "Contract address")
+  .addParam("index", "Content index")
   .setAction(async (taskArgs, hre) => {
     const address = taskArgs.address;
+    const index = taskArgs.index;
     const contract = await hre.viem.getContractAt("StoryGameNFT", address);
-    const allStories = await contract.read.getAllStories();
-    console.log(allStories);
+    const story = await contract.read.getStory([BigInt(index)]);
+    console.log(story);
   });
 
 task("start", "start story")
