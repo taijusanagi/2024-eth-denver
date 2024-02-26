@@ -12,7 +12,7 @@ const config: HardhatUserConfig = {
       },
     },
     sepolia: {
-      url: "https://gateway.tenderly.co/public/sepolia",
+      url: "https://rpc.sepolia.ethpandaops.io",
       accounts,
     },
   },

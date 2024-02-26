@@ -14,6 +14,14 @@ contract StoryGameNFT is FunctionsClient {
     using Strings for uint256;
     using Strings for address;
 
+    event Request(
+        bytes32 indexed requestId,
+        address sender,
+        uint256 ownStoryIndex
+    );
+
+    // address public signer;
+    // bool public isChainlinkAvailable;
     string public baseStory;
     uint256 public totalStoryIndex;
     mapping(address => uint256) public ownStoryIndexes;
@@ -25,11 +33,12 @@ contract StoryGameNFT is FunctionsClient {
     uint32 public functionGasLimit;
     bytes32 public functionDonId;
     string interactScript =
+        // "return Functions.encodeString('ok')";
         "const address = args[0]"
         "const index = args[1]"
         "const content = args[2]"
         "const apiResponse = await Functions.makeHttpRequest({"
-        "  url: 'https://991e-240b-c010-412-2cfd-61a1-8177-ef77-6383.ngrok-free.app/api',"
+        "  url: 'https://2024-eth-denver.vercel.app/api',"
         "  params: {"
         "    address,"
         "    index,"
@@ -44,12 +53,14 @@ contract StoryGameNFT is FunctionsClient {
         "return Functions.encodeString(data)";
 
     constructor(
+        // bool _isChainlinkAvailable,
         string memory _baseStory,
         address _functionRouter,
         uint64 _functionSubscriptionId,
         uint32 _functionGasLimit,
         bytes32 _functionDonId
     ) FunctionsClient(_functionRouter) {
+        // isChainlinkAvailable = _isChainlinkAvailable;
         baseStory = _baseStory;
         subscriptionId = _functionSubscriptionId;
         functionGasLimit = _functionGasLimit;
@@ -63,11 +74,11 @@ contract StoryGameNFT is FunctionsClient {
         ownStoryIndexes[msg.sender] = totalStoryIndex;
         FunctionsRequest.Request memory req;
         req.initializeRequestForInlineJavaScript(interactScript);
-        string[] memory args = new string[](3);
-        args[0] = address(this).toHexString();
-        args[1] = totalStoryIndex.toString();
-        args[2] = baseStory;
-        req.setArgs(args);
+        // string[] memory args = new string[](3);
+        // args[0] = address(this).toHexString();
+        // args[1] = totalStoryIndex.toString();
+        // args[2] = baseStory;
+        // req.setArgs(args);
         bytes32 requestId = _sendRequest(
             req.encodeCBOR(),
             subscriptionId,
@@ -96,6 +107,7 @@ contract StoryGameNFT is FunctionsClient {
         args[1] = totalStoryIndex.toString();
         args[2] = _interaction;
         req.setArgs(args);
+        // if (isChainlinkAvailable) {
         bytes32 requestId = _sendRequest(
             req.encodeCBOR(),
             subscriptionId,
@@ -103,6 +115,16 @@ contract StoryGameNFT is FunctionsClient {
             functionDonId
         );
         functionRequestSender[requestId] = msg.sender;
+        // } else {
+        //     // bytes32 requestId = keccak256(
+        //     //     abi.encodePacked(
+        //     //         block.chainid,
+        //     //         msg.sender,
+        //     //         ownStoryIndex,
+        //     //         interactions[ownStoryIndex].length
+        //     //     )
+        //     // );
+        // }
     }
 
     function respond(address _sender, string memory _response) internal {
@@ -111,6 +133,15 @@ contract StoryGameNFT is FunctionsClient {
         isWaitingResponse[ownStoryIndex] = true;
         responses[ownStoryIndex].push(_response);
     }
+
+    // function fulfillBySigner(
+    //     bytes32 _requestId,
+    //     string memory _response
+    // ) public {
+    //     require(msg.sender == signer, "invalid");
+    //     address sender = functionRequestSender[_requestId];
+    //     respond(sender, _response);
+    // }
 
     function fulfillRequest(
         bytes32 _requestId,

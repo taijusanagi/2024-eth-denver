@@ -21,5 +21,6 @@ export async function GET(req: Request) {
   //   model: "gpt-3.5-turbo",
   // });
   // return Response.json(chatCompletion.choices[0].message.content);
-  return Response.json("ok");
+
+  return Response.json({ ok: "ok" });
 }
