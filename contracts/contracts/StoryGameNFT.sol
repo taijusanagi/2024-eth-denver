@@ -50,7 +50,7 @@ contract StoryGameNFT is FunctionsClient {
         "  throw Error('Request failed')"
         "}"
         "const { data } = apiResponse;"
-        "return Functions.encodeString(data)";
+        "return Functions.encodeString(data.ok)";
 
     constructor(
         // bool _isChainlinkAvailable,

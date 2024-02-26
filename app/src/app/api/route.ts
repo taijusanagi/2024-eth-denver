@@ -13,6 +13,7 @@ export async function GET(req: Request) {
   const address = searchParams.get("address") as string;
   const index = searchParams.get("index") as string;
   const content = searchParams.get("content") as string;
+  console.log("debug");
   console.log(address);
   console.log(index);
   console.log(content);
