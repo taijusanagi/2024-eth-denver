@@ -1,8 +1,8 @@
 import OpenAI from "openai";
 
-// const openai = new OpenAI({
-//   apiKey: process.env.OPENAI_API_KEY,
-// });
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+});
 
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
@@ -10,18 +10,19 @@ export async function GET(req: Request) {
   // if (apiKey != process.env.API_KEY) {
   //   return Response.json({ error: "Bad Request" }, { status: 400 });
   // }
+  const chainId = searchParams.get("chainid") as string;
   const address = searchParams.get("address") as string;
   const index = searchParams.get("index") as string;
   const content = searchParams.get("content") as string;
-  console.log("debug");
+  console.log(chainId);
   console.log(address);
   console.log(index);
   console.log(content);
-  // const chatCompletion = await openai.chat.completions.create({
-  //   messages: [{ role: "user", content }],
-  //   model: "gpt-3.5-turbo",
-  // });
-  // return Response.json(chatCompletion.choices[0].message.content);
+  const chatCompletion = await openai.chat.completions.create({
+    messages: [{ role: "user", content }],
+    model: "gpt-3.5-turbo",
+  });
+  return Response.json({ ok: chatCompletion.choices[0].message.content });
 
-  return Response.json({ ok: "ok" });
+  // return Response.json({ ok: "ok" });
 }
