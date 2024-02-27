@@ -3,14 +3,14 @@ import { functionRouterAddress, functionDonId, functionGasLimit, functionSubscri
 
 async function main() {
   const baseStory = "hi how are you?";
-  const storyGameNFT = await hre.viem.deployContract("StoryGameNFT" as string, [
+  const main = await hre.viem.deployContract("Main" as string, [
     baseStory,
     functionRouterAddress,
     functionSubscriptionId,
     functionGasLimit,
     functionDonId,
   ]);
-  console.log(`StoryGameNFT deployed to ${storyGameNFT.address}`);
+  console.log(`Main deployed to ${main.address}`);
 }
 
 main().catch((error) => {

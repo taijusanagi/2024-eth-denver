@@ -15,7 +15,7 @@ describe("Dungeon", function () {
   const baseStory = "hi how are you?";
   async function getFixture() {
     const [signer] = await hre.viem.getWalletClients();
-    const storyGameNFT = await hre.viem.deployContract("StoryGameNFT" as string, [
+    const main = await hre.viem.deployContract("Main" as string, [
       baseStory,
       functionRouterAddress,
       functionSubscriptionId,
@@ -24,14 +24,14 @@ describe("Dungeon", function () {
     ]);
     return {
       signer,
-      storyGameNFT,
+      main,
     };
   }
 
   describe("Deployment", function () {
     it("Should work", async function () {
-      const { storyGameNFT } = await getFixture();
-      expect(await storyGameNFT.read.baseStory()).to.equal(baseStory);
+      const { main } = await getFixture();
+      expect(await main.read.baseStory()).to.equal(baseStory);
     });
   });
 
@@ -39,7 +39,7 @@ describe("Dungeon", function () {
 
   describe("Start", function () {
     it("Should work", async function () {
-      const { signer, storyGameNFT } = await getFixture();
+      const { signer, main } = await getFixture();
       const [signerAddress] = await signer.getAddresses();
       const privateKey = process.env.PRIVATE_KEY as `0x${string}`;
       const account = privateKeyToAccount(privateKey);
@@ -49,8 +49,8 @@ describe("Dungeon", function () {
         address: functionRouterAddress,
         walletClient,
       });
-      await functionRouterContract.write.addConsumer([functionSubscriptionId, storyGameNFT.address], { account });
-      await storyGameNFT.write.start();
+      await functionRouterContract.write.addConsumer([functionSubscriptionId, main.address], { account });
+      await main.write.start();
     });
   });
 });

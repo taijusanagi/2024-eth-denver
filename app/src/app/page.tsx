@@ -2,7 +2,6 @@
 
 import React, { useMemo, useState } from "react";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
-import { PictureBook } from "@/components/PictureBook";
 import { MdArrowBackIos } from "react-icons/md";
 
 export default function CreatorPage() {
@@ -164,7 +163,6 @@ export default function CreatorPage() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700">Story Branch</label>
-                <PictureBook content={storyBranchContent} length={storyBranchContentLengthInPage} />
               </div>
             </div>
           )}
