@@ -1,13 +1,28 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.24;
+pragma solidity ^0.8.0;
 
 // import "hardhat/console.sol";
 
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {ERC721} from "@openzeppelin/contracts/token/ERC721/ERC721.sol";
-import "./libs/Content.sol";
 
 contract ContentNFT is Ownable, ERC721 {
+    enum ContentType {
+        Root,
+        Branch
+    }
+
+    // ETHStorage File Location
+    struct RootContentLocatioin {
+        address directory;
+        bytes name;
+    }
+
+    struct BranchContentLocatioin {
+        uint256 chainId;
+        address branchMinterL1;
+    }
+
     event branchMinterL1Set(address indexed branchMinterL1, bool status);
     event RootContentMinted(
         uint256 indexed tokenId,

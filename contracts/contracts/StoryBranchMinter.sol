@@ -1,17 +1,21 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.24;
+pragma solidity ^0.8.0;
 
 // import "hardhat/console.sol";
 
 import {FunctionsClient} from "@chainlink/contracts/src/v0.8/functions/dev/v1_0_0/FunctionsClient.sol";
 import {FunctionsRequest} from "@chainlink/contracts/src/v0.8/functions/dev/v1_0_0/libraries/FunctionsRequest.sol";
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
-import "./libs/Content.sol";
 
 abstract contract StoryBranchMinter is FunctionsClient {
     using FunctionsRequest for FunctionsRequest.Request;
     using Strings for uint256;
     using Strings for address;
+
+    struct RootContentLocatioin {
+        address directory;
+        bytes name;
+    }
 
     enum Status {
         WaitingOracleResponse,
