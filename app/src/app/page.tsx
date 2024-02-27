@@ -7,8 +7,8 @@ import { MdArrowBackIos } from "react-icons/md";
 
 export default function CreatorPage() {
   const [mode, setMode] = useState<
-    "createStoryRoot" | "viewStoryRoots" | "viewStoryRoot" | "viewStoryBranch" | "createStoryBranch"
-  >("createStoryRoot");
+    "viewStoryRoots" | "createStoryRoot" | "viewStoryRoot" | "viewStoryBranch" | "createStoryBranch"
+  >("viewStoryRoots");
   const [forkedFrom, setForkedFrom] = useState<number>();
   const [stories, setStories] = useState([
     "https://placehold.jp/500x500.png",
@@ -50,82 +50,32 @@ export default function CreatorPage() {
           <ConnectButton />
         </div>
       </header>
-      <div className="flex flex-col justify-center items-center p-4">
-        <div className="mb-4 flex justify-between items-center w-full max-w-3xl">
+      <div className="flex flex-col justify-center items-center pt-4 pb-12 px-4">
+        <div className="mb-4 flex justify-between items-center w-full max-w-4xl h-8">
           <div className="cursor-pointer text-white hover:text-gray-200">
-            {mode == "viewStoryRoot" && <MdArrowBackIos size={20} onClick={() => setMode("viewStoryRoots")} />}
-            {mode == "viewStoryBranch" && <MdArrowBackIos size={20} onClick={() => setMode("viewStoryRoot")} />}
+            {mode == "createStoryRoot" && <MdArrowBackIos size={25} onClick={() => setMode("viewStoryRoots")} />}
+            {mode == "viewStoryRoot" && <MdArrowBackIos size={25} onClick={() => setMode("viewStoryRoots")} />}
+            {mode == "viewStoryBranch" && <MdArrowBackIos size={25} onClick={() => setMode("viewStoryRoot")} />}
+            {mode == "createStoryBranch" && <MdArrowBackIos size={25} onClick={() => setMode("viewStoryRoot")} />}
           </div>
-          <nav className="flex space-x-4 text-white">
-            <button
-              className={`p-2 text-sm sm:text-base ${
-                mode == "createStoryRoot"
-                  ? "text-purple-600 font-semibold border-b-2 border-purple-600"
-                  : "hover:text-gray-200"
-              }`}
-              onClick={() => {
-                if (mode == "createStoryRoot") {
-                  return;
-                }
-                setForkedFrom(undefined);
-                setMode("createStoryRoot");
-              }}
-            >
-              Create
-            </button>
-            <button
-              className={`p-2 text-sm sm:text-base ${
-                mode == "viewStoryRoots" || mode == "viewStoryRoot" || mode == "viewStoryBranch"
-                  ? "text-purple-600 font-semibold border-b-2 border-purple-600"
-                  : "hover:text-gray-200"
-              }`}
-              onClick={() => {
-                if (mode == "viewStoryRoots" || mode == "viewStoryRoot" || mode == "viewStoryBranch") {
-                  return;
-                }
-                setMode("viewStoryRoots");
-              }}
-            >
-              View
-            </button>
-          </nav>
         </div>
-        <div className="bg-white backdrop-blur-lg py-8 px-6 rounded-lg shadow-2xl w-full max-w-3xl mx-auto">
-          {mode == "createStoryRoot" && (
-            <div>
-              <h2 className="text-lg font-semibold text-gray-800 mb-4">Create Story Root</h2>
-              <div className="mb-4">
-                <div className="flex justify-between">
-                  <label className="block text-sm font-medium text-gray-700">Prompt</label>
-                  {forkedFrom != undefined && (
-                    <label
-                      className="block text-sm font-medium text-blue-400 underline hover:text-blue-600 cursor-pointer"
-                      onClick={() => {
-                        console.log("clicked");
-                      }}
-                    >
-                      Forked from story: {forkedFrom}
-                    </label>
-                  )}
-                </div>
-                <textarea className="h-[45vh] mt-1 block w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-sm"></textarea>
-              </div>
-              <div>
-                <button
-                  className="w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none"
-                  onClick={() => {
-                    setIsModalOpen(true);
-                  }}
-                >
-                  Create
-                </button>
-              </div>
-            </div>
-          )}
+        <div className="bg-white backdrop-blur-lg py-8 px-6 rounded-lg shadow-2xl w-full max-w-4xl mx-auto">
           {mode == "viewStoryRoots" && (
             <div>
               <h2 className="text-lg font-semibold text-gray-800 mb-4">View Story Roots</h2>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Story Roots</label>
+              <div className="flex justify-between">
+                <label className="block text-sm font-medium text-gray-700 mb-2">Story Roots</label>
+                <div className="flex">
+                  <label
+                    className="block text-sm font-medium text-blue-400 underline hover:text-blue-600 cursor-pointer"
+                    onClick={() => {
+                      setMode("createStoryRoot");
+                    }}
+                  >
+                    Create Root
+                  </label>
+                </div>
+              </div>
               <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 sm:gap-4">
                 {stories.map((story, index) => (
                   <div
@@ -142,6 +92,27 @@ export default function CreatorPage() {
               </div>
             </div>
           )}
+          {mode == "createStoryRoot" && (
+            <div>
+              <h2 className="text-lg font-semibold text-gray-800 mb-4">Create Story Root</h2>
+              <div className="mb-4">
+                <div className="flex justify-between">
+                  <label className="block text-sm font-medium text-gray-700">Prompt</label>
+                </div>
+                <textarea className="h-[45vh] mt-1 block w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-sm"></textarea>
+              </div>
+              <div>
+                <button
+                  className="w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none"
+                  onClick={() => {
+                    setIsModalOpen(true);
+                  }}
+                >
+                  Create
+                </button>
+              </div>
+            </div>
+          )}
           {mode == "viewStoryRoot" && selectedStoryRootIndex != undefined && (
             <div>
               <h2 className="text-lg font-semibold text-gray-800 mb-4">View Story Root</h2>
@@ -149,15 +120,6 @@ export default function CreatorPage() {
                 <div className="flex justify-between">
                   <label className="block text-sm font-medium text-gray-700">Story Root</label>
                   <div className="flex">
-                    <label
-                      className="block text-sm font-medium text-blue-400 underline hover:text-blue-600 cursor-pointer mr-4"
-                      onClick={() => {
-                        setForkedFrom(selectedStoryRootIndex);
-                        setMode("createStoryRoot");
-                      }}
-                    >
-                      Fork Root
-                    </label>
                     <label
                       className="block text-sm font-medium text-blue-400 underline hover:text-blue-600 cursor-pointer"
                       onClick={() => {
@@ -178,7 +140,7 @@ export default function CreatorPage() {
                   {stories.map((story, index) => (
                     <div
                       key={index}
-                      className="w-full h-40 bg-gray-200 rounded-lg shadow-md overflow-hidden cursor-pointer transform hover:scale-105 transition duration-100"
+                      className="w-full h-30 bg-gray-200 rounded-lg shadow-md overflow-hidden cursor-pointer transform hover:scale-105 transition duration-100"
                       onClick={() => {
                         setSelectedStoryBranchIndex(index);
                         setMode("viewStoryBranch");
@@ -204,6 +166,11 @@ export default function CreatorPage() {
                 <label className="block text-sm font-medium text-gray-700">Story Branch</label>
                 <PictureBook content={storyBranchContent} length={storyBranchContentLengthInPage} />
               </div>
+            </div>
+          )}
+          {mode == "createStoryBranch" && (
+            <div>
+              <h2 className="text-lg font-semibold text-gray-800 mb-4">Create Story Branch</h2>
             </div>
           )}
         </div>
