@@ -2,78 +2,192 @@
 
 import React, { useMemo, useState } from "react";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
+import { PictureBook } from "@/components/PictureBook";
 
 export default function CreatorPage() {
-  const [mode, setMode] = useState<"createStory" | "viewStories">("createStory");
+  const [mode, setMode] = useState<"createStoryRoot" | "viewStoryRoots" | "viewStoryRoot" | "viewStoryBranch">(
+    "createStoryRoot"
+  );
+  const [forkedFrom, setForkedFrom] = useState<number>();
+  const [stories, setStories] = useState([
+    "https://placehold.jp/500x500.png",
+    "https://placehold.jp/500x500.png",
+    "https://placehold.jp/500x500.png",
+    "https://placehold.jp/500x500.png",
+    "https://placehold.jp/500x500.png",
+    "https://placehold.jp/500x500.png",
+    "https://placehold.jp/500x500.png",
+    "https://placehold.jp/500x500.png",
+    "https://placehold.jp/500x500.png",
+    "https://placehold.jp/500x500.png",
+  ]);
+  const [selectedStoryRootIndex, setSelectedStoryRootIndex] = useState<number>();
+  const [storyBranches, setStoryBranches] = useState([
+    "https://placehold.jp/500x500.png",
+    "https://placehold.jp/500x500.png",
+    "https://placehold.jp/500x500.png",
+    "https://placehold.jp/500x500.png",
+    "https://placehold.jp/500x500.png",
+    "https://placehold.jp/500x500.png",
+    "https://placehold.jp/500x500.png",
+    "https://placehold.jp/500x500.png",
+    "https://placehold.jp/500x500.png",
+    "https://placehold.jp/500x500.png",
+  ]);
+  const [selectedStoryBranchIndex, setSelectedStoryBranchIndex] = useState<number>();
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [forkedFrom, setForkedFrom] = useState("");
+
+  // dev
+  const storyBranchContent = ``;
+  const storyBranchContentLengthInPage = 80;
 
   return (
-    <main className="min-h-screen flex flex-col bg-gradient-to-br from-violet-200 to-pink-200 font-poppins">
-      <header className="w-full py-4 bg-white backdrop-blur-md shadow-md">
+    <main className="min-h-screen flex flex-col bg-gradient-to-br from-violet-300 to-pink-300 font-poppins">
+      <header className="w-full py-4 bg-transparent backdrop-blur-md">
         <div className="flex justify-between items-center px-4">
-          <h1 className="text-xl font-semibold text-gray-800">Creator Tool</h1>
+          <h1 className="text-xl font-semibold text-white text-gray-800">Logo</h1>
           <ConnectButton />
         </div>
       </header>
-      <div className="flex flex-col justify-center items-center py-12 px-4">
-        <div className="mb-4 flex justify-end items-center w-full max-w-2xl">
+      <div className="flex flex-col justify-center items-center p-4">
+        <div className="mb-4 flex justify-end items-center w-full max-w-3xl">
           <nav className="flex space-x-4 text-white">
             <button
               className={`p-2 text-sm sm:text-base ${
-                mode == "createStory" ? "text-purple-600 font-semibold border-b-2 border-purple-600" : ""
+                mode == "createStoryRoot" ? "text-purple-600 font-semibold border-b-2 border-purple-600" : ""
               }`}
-              onClick={() => setMode("createStory")}
+              onClick={() => {
+                if (mode == "createStoryRoot") {
+                  return;
+                }
+                setForkedFrom(undefined);
+                setMode("createStoryRoot");
+              }}
             >
-              Create Story
+              Create
             </button>
             <button
               className={`p-2 text-sm sm:text-base ${
-                mode == "viewStories" ? "text-purple-600 font-semibold border-b-2 border-purple-600" : ""
+                mode == "viewStoryRoots" || mode == "viewStoryRoot" || mode == "viewStoryBranch"
+                  ? "text-purple-600 font-semibold border-b-2 border-purple-600"
+                  : ""
               }`}
-              onClick={() => setMode("viewStories")}
+              onClick={() => {
+                if (mode == "viewStoryRoots" || mode == "viewStoryRoot" || mode == "viewStoryBranch") {
+                  return;
+                }
+                setMode("viewStoryRoots");
+              }}
             >
-              View Stories
+              View
             </button>
           </nav>
         </div>
-        <div className="bg-white backdrop-blur-lg py-8 px-6 rounded-lg shadow-2xl w-full max-w-2xl mx-auto space-y-6">
-          {mode == "createStory" && (
+        <div className="bg-white backdrop-blur-lg py-8 px-6 rounded-lg shadow-2xl w-full max-w-3xl mx-auto">
+          {mode == "createStoryRoot" && (
             <div>
-              <h2 className="text-xl font-semibold text-gray-800 mb-4">Create Story</h2>
-              <div className="space-y-4">
-                <div>
-                  <div className="flex justify-between">
-                    <label className="block text-sm font-medium text-gray-700">Prompt</label>
-                    {forkedFrom && (
-                      <label
-                        className="block text-sm font-medium text-blue-400 underline hover:text-blue-600 cursor-pointer"
-                        onClick={() => {
-                          console.log("clicked");
-                        }}
-                      >
-                        Forked from story: {forkedFrom}
-                      </label>
-                    )}
-                  </div>
-                  <textarea className="h-[45vh] mt-1 block w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-sm"></textarea>
+              <h2 className="text-lg font-semibold text-gray-800 mb-4">Create Story Root</h2>
+              <div className="mb-4">
+                <div className="flex justify-between">
+                  <label className="block text-sm font-medium text-gray-700">Prompt</label>
+                  {forkedFrom != undefined && (
+                    <label
+                      className="block text-sm font-medium text-blue-400 underline hover:text-blue-600 cursor-pointer"
+                      onClick={() => {
+                        console.log("clicked");
+                      }}
+                    >
+                      Forked from story: {forkedFrom}
+                    </label>
+                  )}
                 </div>
-                <div>
-                  <button
-                    className="w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none"
+                <textarea className="h-[45vh] mt-1 block w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-sm"></textarea>
+              </div>
+              <div>
+                <button
+                  className="w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none"
+                  onClick={() => {
+                    setIsModalOpen(true);
+                  }}
+                >
+                  Create
+                </button>
+              </div>
+            </div>
+          )}
+          {mode == "viewStoryRoots" && (
+            <div>
+              <h2 className="text-lg font-semibold text-gray-800 mb-4">View Story Roots</h2>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Story Roots</label>
+              <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 sm:gap-4">
+                {stories.map((story, index) => (
+                  <div
+                    key={index}
+                    className="w-full h-30 bg-gray-200 rounded-lg shadow-md overflow-hidden cursor-pointer transform hover:scale-105 transition duration-100"
                     onClick={() => {
-                      setIsModalOpen(true);
+                      setSelectedStoryRootIndex(index);
+                      setMode("viewStoryRoot");
                     }}
                   >
-                    Create
-                  </button>
+                    <img src={story} alt={`Story ${index + 1}`} className="w-full h-full object-cover" />
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+          {mode == "viewStoryRoot" && selectedStoryRootIndex != undefined && (
+            <div>
+              <h2 className="text-lg font-semibold text-gray-800 mb-4">View Story Root</h2>
+              <div className="mb-4">
+                <div className="flex justify-between">
+                  <label className="block text-sm font-medium text-gray-700">Story Root</label>
+                  <label
+                    className="block text-sm font-medium text-blue-400 underline hover:text-blue-600 cursor-pointer"
+                    onClick={() => {
+                      setForkedFrom(selectedStoryRootIndex);
+                      setMode("createStoryRoot");
+                    }}
+                  >
+                    Fork Story Root
+                  </label>
+                </div>
+
+                <div className="w-full h-80 mt-2">
+                  <img src={stories[selectedStoryRootIndex]} className="w-full h-full object-cover" />
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Story Branches</label>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4">
+                  {stories.map((story, index) => (
+                    <div
+                      key={index}
+                      className="w-full h-40 bg-gray-200 rounded-lg shadow-md overflow-hidden cursor-pointer transform hover:scale-105 transition duration-100"
+                      onClick={() => {
+                        setSelectedStoryBranchIndex(index);
+                        setMode("viewStoryBranch");
+                      }}
+                    >
+                      <img src={story} alt={`Story ${index + 1}`} className="w-full h-full object-cover" />
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>
           )}
-          {mode == "viewStories" && (
+          {mode == "viewStoryBranch" && selectedStoryRootIndex != undefined && (
             <div>
-              <h2 className="text-xl font-semibold text-gray-800  mb-4">View Stories</h2>
+              <h2 className="text-lg font-semibold text-gray-800 mb-4">View Story Branch</h2>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700">Story Root</label>
+                <div className="w-full h-20 mt-2">
+                  <img src={stories[selectedStoryRootIndex]} className="w-full h-full object-cover" />
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Story Branch</label>
+                <PictureBook content={storyBranchContent} length={storyBranchContentLengthInPage} />
+              </div>
             </div>
           )}
         </div>

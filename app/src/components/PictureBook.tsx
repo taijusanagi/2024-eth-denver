@@ -1,13 +1,11 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 
-// Sample text split into pages
-const pages = [
-  "This is the content of page one. Here you can add paragraphs and format it as needed.",
-  "This is the content of page two. Each string represents different page content.",
-  "This is the content of page three. Add as many pages as you like.",
-];
+export interface PictureBookProps {
+  content: string;
+  length: number;
+}
 
-function PictureBook() {
+export const PictureBook: React.FC<PictureBookProps> = ({ content, length }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
 
   const goToPrevious = () => {
@@ -17,6 +15,14 @@ function PictureBook() {
   const goToNext = () => {
     setCurrentIndex((prevIndex) => (prevIndex < pages.length - 1 ? prevIndex + 1 : 0));
   };
+
+  const pages = useMemo(() => {
+    let result = [];
+    for (let i = 0; i < content.length; i += length) {
+      result.push(content.substring(i, i + length));
+    }
+    return result;
+  }, [content, length]);
 
   return (
     <div className="container mx-auto p-4">
@@ -35,6 +41,4 @@ function PictureBook() {
       </div>
     </div>
   );
-}
-
-export default PictureBook;
+};
