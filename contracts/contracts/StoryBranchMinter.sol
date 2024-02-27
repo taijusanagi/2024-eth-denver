@@ -80,7 +80,21 @@ abstract contract StoryBranchMinter is FunctionsClient {
         _sendRequestToChainlink(_branchContentId);
     }
 
-    function interactFromCreator(bytes memory interaction) public {
+    function _endBranchContent(address _creator) internal {
+        require(
+            activeBranchContentIds[_creator] != 0,
+            "StoryBranchMinter: no active branch content"
+        );
+        uint256 _branchContentId = activeBranchContentIds[_creator];
+        require(
+            statuses[_branchContentId] == Status.WaitingUserInteraction,
+            "StoryBranchMinter: Invalid status"
+        );
+        delete activeBranchContentIds[_creator];
+        statuses[_branchContentId] = Status.Ended;
+    }
+
+    function interactFromCreator(string memory interaction) public {
         address _creator = msg.sender;
         require(
             activeBranchContentIds[_creator] != 0,
@@ -110,7 +124,7 @@ abstract contract StoryBranchMinter is FunctionsClient {
     function _sendRequestToChainlink(uint256 _branchContentId) internal {
         FunctionsRequest.Request memory req;
         req.initializeRequestForInlineJavaScript(interactScript);
-        string[] memory args = new string[](1);
+        string[] memory args = new string[](2);
         args[0] = block.chainid.toString();
         args[1] = _branchContentId.toString();
         req.setArgs(args);

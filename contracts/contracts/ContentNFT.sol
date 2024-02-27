@@ -20,7 +20,8 @@ contract ContentNFT is Ownable, ERC721 {
 
     struct BranchContentLocatioin {
         uint256 chainId;
-        address branchMinterL1;
+        address directory;
+        uint256 index;
     }
 
     event branchMinterL1Set(address indexed branchMinterL1, bool status);
@@ -72,7 +73,8 @@ contract ContentNFT is Ownable, ERC721 {
 
     function mintBranch(
         uint256 chainId,
-        address branchMinterL1,
+        address directory,
+        uint256 index,
         address creator
     ) external {
         require(isbranchMinterL1[msg.sender], "ContentNFT: Invalid sender");
@@ -81,11 +83,12 @@ contract ContentNFT is Ownable, ERC721 {
         BranchContentLocatioin
             memory branchContentLocation = BranchContentLocatioin({
                 chainId: chainId,
-                branchMinterL1: branchMinterL1
+                directory: directory,
+                index: index
             });
         contentTypes[tokenId] = ContentType.Branch;
         branchContentLocations[tokenId] = branchContentLocation;
-        _mint(msg.sender, tokenId);
+        _mint(creator, tokenId);
         emit BranchContentMinted(tokenId, creator, branchContentLocation);
     }
 

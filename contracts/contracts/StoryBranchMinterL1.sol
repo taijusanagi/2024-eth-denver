@@ -36,5 +36,20 @@ contract StoryBranchMinterL1 is StoryBranchMinter {
         _startBranchContent(_directory, _name, msg.sender);
     }
 
+    function endBranchContent() public {
+        uint256 _branchContentId = activeBranchContentIds[msg.sender];
+        _endBranchContent(msg.sender);
+        _mintBranch(block.chainid, address(this), _branchContentId, msg.sender);
+    }
+
+    function _mintBranch(
+        uint256 chainId,
+        address directory,
+        uint256 index,
+        address creator
+    ) internal {
+        contentNFT.mintBranch(chainId, directory, index, creator);
+    }
+
     // TODO: connect with L2
 }

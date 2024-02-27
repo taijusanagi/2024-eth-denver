@@ -6,11 +6,11 @@ const accounts = process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [];
 const config: HardhatUserConfig = {
   solidity: "0.8.24",
   networks: {
-    hardhat: {
-      forking: {
-        url: "https://gateway.tenderly.co/public/sepolia",
-      },
-    },
+    // hardhat: {
+    //   forking: {
+    //     url: "https://gateway.tenderly.co/public/sepolia",
+    //   },
+    // },
     sepolia: {
       url: "https://rpc.sepolia.ethpandaops.io",
       accounts,
