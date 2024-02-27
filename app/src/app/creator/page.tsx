@@ -6,9 +6,9 @@ import { PictureBook } from "@/components/PictureBook";
 import { MdArrowBackIos } from "react-icons/md";
 
 export default function CreatorPage() {
-  const [mode, setMode] = useState<"createStoryRoot" | "viewStoryRoots" | "viewStoryRoot" | "viewStoryBranch">(
-    "createStoryRoot"
-  );
+  const [mode, setMode] = useState<
+    "createStoryRoot" | "viewStoryRoots" | "viewStoryRoot" | "viewStoryBranch" | "createStoryBranch"
+  >("createStoryRoot");
   const [forkedFrom, setForkedFrom] = useState<number>();
   const [stories, setStories] = useState([
     "https://placehold.jp/500x500.png",
@@ -148,17 +148,26 @@ export default function CreatorPage() {
               <div className="mb-4">
                 <div className="flex justify-between">
                   <label className="block text-sm font-medium text-gray-700">Story Root</label>
-                  <label
-                    className="block text-sm font-medium text-blue-400 underline hover:text-blue-600 cursor-pointer"
-                    onClick={() => {
-                      setForkedFrom(selectedStoryRootIndex);
-                      setMode("createStoryRoot");
-                    }}
-                  >
-                    Fork Story Root
-                  </label>
+                  <div className="flex">
+                    <label
+                      className="block text-sm font-medium text-blue-400 underline hover:text-blue-600 cursor-pointer mr-4"
+                      onClick={() => {
+                        setForkedFrom(selectedStoryRootIndex);
+                        setMode("createStoryRoot");
+                      }}
+                    >
+                      Fork Root
+                    </label>
+                    <label
+                      className="block text-sm font-medium text-blue-400 underline hover:text-blue-600 cursor-pointer"
+                      onClick={() => {
+                        setMode("createStoryBranch");
+                      }}
+                    >
+                      Create Branch
+                    </label>
+                  </div>
                 </div>
-
                 <div className="w-full h-80 mt-2">
                   <img src={stories[selectedStoryRootIndex]} className="w-full h-full object-cover" />
                 </div>
