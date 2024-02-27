@@ -3,6 +3,7 @@
 import React, { useMemo, useState } from "react";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { PictureBook } from "@/components/PictureBook";
+import { MdArrowBackIos } from "react-icons/md";
 
 export default function CreatorPage() {
   const [mode, setMode] = useState<"createStoryRoot" | "viewStoryRoots" | "viewStoryRoot" | "viewStoryBranch">(
@@ -50,11 +51,17 @@ export default function CreatorPage() {
         </div>
       </header>
       <div className="flex flex-col justify-center items-center p-4">
-        <div className="mb-4 flex justify-end items-center w-full max-w-3xl">
+        <div className="mb-4 flex justify-between items-center w-full max-w-3xl">
+          <div className="cursor-pointer text-white hover:text-gray-200">
+            {mode == "viewStoryRoot" && <MdArrowBackIos size={20} onClick={() => setMode("viewStoryRoots")} />}
+            {mode == "viewStoryBranch" && <MdArrowBackIos size={20} onClick={() => setMode("viewStoryRoot")} />}
+          </div>
           <nav className="flex space-x-4 text-white">
             <button
               className={`p-2 text-sm sm:text-base ${
-                mode == "createStoryRoot" ? "text-purple-600 font-semibold border-b-2 border-purple-600" : ""
+                mode == "createStoryRoot"
+                  ? "text-purple-600 font-semibold border-b-2 border-purple-600"
+                  : "hover:text-gray-200"
               }`}
               onClick={() => {
                 if (mode == "createStoryRoot") {
@@ -70,7 +77,7 @@ export default function CreatorPage() {
               className={`p-2 text-sm sm:text-base ${
                 mode == "viewStoryRoots" || mode == "viewStoryRoot" || mode == "viewStoryBranch"
                   ? "text-purple-600 font-semibold border-b-2 border-purple-600"
-                  : ""
+                  : "hover:text-gray-200"
               }`}
               onClick={() => {
                 if (mode == "viewStoryRoots" || mode == "viewStoryRoot" || mode == "viewStoryBranch") {
