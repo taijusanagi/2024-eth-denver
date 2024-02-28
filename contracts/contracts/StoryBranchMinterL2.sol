@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.23;
 
 // import "hardhat/console.sol";
 
@@ -7,22 +7,26 @@ import "./StoryBranchMinter.sol";
 
 contract StoryBranchMinterL2 is StoryBranchMinter {
     constructor(
-        address _functionRouter,
-        uint64 _functionSubscriptionId,
-        uint32 _functionGasLimit,
-        bytes32 _functionDonId
+        address functionRouter,
+        uint64 functionSubscriptionId,
+        uint32 functionGasLimit,
+        bytes32 functionDonId
     )
         StoryBranchMinter(
-            _functionRouter,
-            _functionSubscriptionId,
-            _functionGasLimit,
-            _functionDonId
+            functionRouter,
+            functionSubscriptionId,
+            functionGasLimit,
+            functionDonId
         )
     {}
 
-    function startBranchContent(address _directory, bytes memory _name) public {
+    function startBranchContent(
+        uint256 rootContentTokenId,
+        address directory,
+        bytes memory name
+    ) public {
         // TODO: validate the content actualy exist using wormhole query
-        _startBranchContent(_directory, _name, msg.sender);
+        _startBranchContent(rootContentTokenId, msg.sender);
     }
 
     // TODO: connect with L1

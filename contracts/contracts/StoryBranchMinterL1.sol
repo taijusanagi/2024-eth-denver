@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.23;
 
 // import "hardhat/console.sol";
 
@@ -33,7 +33,7 @@ contract StoryBranchMinterL1 is StoryBranchMinter {
             _directory != address(0),
             "StoryBranchMinterL1: Invalid tokenId"
         );
-        _startBranchContent(_directory, _name, msg.sender);
+        _startBranchContent(_rootContentTokenId, msg.sender);
     }
 
     function endBranchContent() public {

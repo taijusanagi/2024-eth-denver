@@ -1,10 +1,15 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.23;
 
 // import "hardhat/console.sol";
 
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {ERC721} from "@openzeppelin/contracts/token/ERC721/ERC721.sol";
+import {IP} from "@story-protocol/contracts/contracts/lib/IP.sol";
+import {IPAssetRegistry} from "@story-protocol/contracts/contracts/registries/IPAssetRegistry.sol";
+import {IPResolver} from "@story-protocol/contracts/contracts/resolvers/IPResolver.sol";
+// import {ILicensingModule} from "@storyprotocol/contracts/contracts/interfaces/modules/licensing/ILicensingModule.sol";
+// import {StoryProtocolGateway} from "solidity-template/contracts/StoryProtocolGateway.sol";
 
 contract ContentNFT is Ownable, ERC721 {
     enum ContentType {
@@ -17,7 +22,6 @@ contract ContentNFT is Ownable, ERC721 {
         address directory;
         bytes name;
     }
-
     struct BranchContentLocatioin {
         uint256 chainId;
         address directory;
@@ -35,29 +39,39 @@ contract ContentNFT is Ownable, ERC721 {
         address indexed creator,
         BranchContentLocatioin branchContentLocation
     );
+
     mapping(address => bool) public isbranchMinterL1;
     mapping(uint256 => ContentType) public contentTypes;
     mapping(uint256 => RootContentLocatioin) public rootContentLocations;
     mapping(uint256 => BranchContentLocatioin) public branchContentLocations;
+    mapping(uint256 => address) public ipIds;
+
+    IPAssetRegistry public ipAssetRegistry;
+    IPResolver public ipResolver;
+    // StoryProtocolGateway immutable spg;
     uint256 public totalSupply;
 
-    uint256 public totalStoryIndex;
-    mapping(address => uint256) public ownStoryIndexes;
-
+    // StoryProtocolGateway spg_
     constructor(
         string memory name,
-        string memory symbol
-    ) Ownable(msg.sender) ERC721(name, symbol) {}
+        string memory symbol,
+        IPAssetRegistry ipAssetRegistry_,
+        IPResolver ipResolver_
+    ) Ownable(msg.sender) ERC721(name, symbol) {
+        ipAssetRegistry = ipAssetRegistry_;
+        ipResolver = ipResolver_;
+        // spg = spg_;
+    }
 
     function setBranchMinterL1(
         address branchMinterL1,
         bool status
-    ) external onlyOwner {
+    ) public onlyOwner {
         isbranchMinterL1[branchMinterL1] = status;
         emit branchMinterL1Set(branchMinterL1, status);
     }
 
-    function mintRoot(address directory, bytes memory fileName) external {
+    function mintRoot(address directory, bytes memory fileName) public {
         uint256 tokenId = totalSupply;
         totalSupply++;
         // should improve to check the content using ETHStorage better
@@ -67,7 +81,28 @@ contract ContentNFT is Ownable, ERC721 {
         });
         contentTypes[tokenId] = ContentType.Root;
         rootContentLocations[tokenId] = rootContentLocation;
-        _mint(msg.sender, tokenId);
+
+        // first mint nft to this address to enable IP registration
+        _mint(address(this), tokenId);
+        bytes memory metadata = abi.encode(
+            IP.MetadataV1({
+                name: "Interactive Story Root:",
+                hash: "",
+                registrationDate: uint64(block.timestamp),
+                registrant: address(this),
+                uri: ""
+            })
+        );
+        address ipId = ipAssetRegistry.register(
+            block.chainid,
+            address(this),
+            tokenId,
+            address(ipResolver),
+            true,
+            metadata
+        );
+        // then give the nft back to creator
+        this.transferFrom(address(this), msg.sender, tokenId);
         emit RootContentMinted(tokenId, msg.sender, rootContentLocation);
     }
 
@@ -76,8 +111,19 @@ contract ContentNFT is Ownable, ERC721 {
         address directory,
         uint256 index,
         address creator
-    ) external {
+    ) public {
         require(isbranchMinterL1[msg.sender], "ContentNFT: Invalid sender");
+        // PILPolicy memory pilPolicy;
+        // address licensorIpId;
+        // spg.mintLicensePIL(
+        //     pilPolicy,
+        //     licensorIpId,
+        //     1,
+        //     ROYATY_CONTEXT,
+        //     MINTING_FEE,
+        //     MINTING_FEE_TOKNE
+        // );
+
         uint256 tokenId = totalSupply;
         totalSupply++;
         BranchContentLocatioin

@@ -2,18 +2,28 @@ import hre from "hardhat";
 import { getContract, createWalletClient } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { expect } from "chai";
+import { ethers } from "ethers";
 
 import { chainlinkConfig } from "../lib/chainlink";
+import { storyProtocolConfig } from "../lib/story-protocol";
 
-import { nftName, nftSymbol, nullBytes32, nullBytes } from "../lib/constants";
+import { nftName, nftSymbol, nullBytes32, nullBytes, nullAddress } from "../lib/constants";
 
 describe("Integration", function () {
-  const baseStory = "hi how are you?";
-  async function getFixture() {
+  it("Should work with mock", async function () {
     const [signer] = await hre.viem.getWalletClients();
     const mockFileDirectory = await hre.viem.deployContract("MockFileDirectory" as string, []);
+    const fileName = "fileName";
+    const fileValue = "fileValue";
+    mockFileDirectory.write.write([fileName, fileValue]);
+    const mockAssetRegistry = await hre.viem.deployContract("MockAssetRegistry" as string, []);
     const mockFunctionsRouter = await hre.viem.deployContract("MockFunctionsRouter" as string, []);
-    const contentNFT = await hre.viem.deployContract("ContentNFT" as string, [nftName, nftSymbol]);
+    const contentNFT = await hre.viem.deployContract("ContentNFT" as string, [
+      nftName,
+      nftSymbol,
+      mockAssetRegistry.address,
+      nullAddress,
+    ]);
     const storyBranchMinterL1 = await hre.viem.deployContract("StoryBranchMinterL1Exposure" as string, [
       mockFunctionsRouter.address,
       0,
@@ -22,45 +32,77 @@ describe("Integration", function () {
       contentNFT.address,
     ]);
     await contentNFT.write.setBranchMinterL1([storyBranchMinterL1.address, true]);
-    return {
-      signer,
-      mockFileDirectory,
-      contentNFT,
-      storyBranchMinterL1,
-    };
-  }
+    const [signerAddress] = await signer.getAddresses();
+    await contentNFT.write.mintRoot([
+      mockFileDirectory.address,
+      ethers.utils.hexlify(ethers.utils.toUtf8Bytes(fileName)),
+    ]);
+    const rootTokenId = 0;
+    expect(await contentNFT.read.ownerOf([rootTokenId])).to.equal(signerAddress);
+    await storyBranchMinterL1.write.startBranchContent([rootTokenId]);
+    const contentId = await storyBranchMinterL1.read.activeBranchContentIds([signerAddress]);
+    const oracleRespond1 = "oracleResponse1";
+    await storyBranchMinterL1.write.exposeProcessOracleRespond([contentId, oracleRespond1]);
+    const userInteract1 = "userInteraction1";
+    await storyBranchMinterL1.write.interactFromCreator([userInteract1]);
+    const oracleRespond2 = "oracleResponse2";
+    await storyBranchMinterL1.write.exposeProcessOracleRespond([contentId, oracleRespond2]);
+    await storyBranchMinterL1.write.endBranchContent();
+    const branchTokenId = 1;
+    expect(await contentNFT.read.ownerOf([branchTokenId])).to.equal(signerAddress);
 
-  describe("Deployment", function () {
-    it("Should work", async function () {
-      const { contentNFT } = await getFixture();
-      expect(await contentNFT.read.name()).to.equal(nftName);
-      expect(await contentNFT.read.symbol()).to.equal(nftSymbol);
-    });
+    // check views
+    // const content = await storyBranchMinterL1.read.getContent([contentId]);
+    // console.log(content);
+    // const read = await storyBranchMinterL1.read.read([contentId]);
+    // console.log(read);
   });
 
-  describe("Integration L1", function () {
-    it("Should work", async function () {
-      const { signer, mockFileDirectory, contentNFT, storyBranchMinterL1 } = await getFixture();
-      const [signerAddress] = await signer.getAddresses();
-      const key = nullBytes;
-      await contentNFT.write.mintRoot([mockFileDirectory.address, key]);
-      const rootTokenId = 0;
-      expect(await contentNFT.read.ownerOf([rootTokenId])).to.equal(signerAddress);
-      await storyBranchMinterL1.write.startBranchContent([rootTokenId]);
-      const contentId = await storyBranchMinterL1.read.activeBranchContentIds([signerAddress]);
-      const oracleRespond1 = "oracleRespond1";
-      await storyBranchMinterL1.write.exposeProcessOracleRespond([contentId, oracleRespond1]);
-      const userInteract1 = "userInteract1";
-      await storyBranchMinterL1.write.interactFromCreator([userInteract1]);
-      const oracleRespond2 = "oracleRespond2";
-      await storyBranchMinterL1.write.exposeProcessOracleRespond([contentId, oracleRespond2]);
-      await storyBranchMinterL1.write.endBranchContent();
-      const branchTokenId = 1;
-      expect(await contentNFT.read.ownerOf([branchTokenId])).to.equal(signerAddress);
+  it("Should work with forked story protocol", async function () {
+    const [signer] = await hre.viem.getWalletClients();
+    const mockFileDirectory = await hre.viem.deployContract("MockFileDirectory" as string, []);
+    const fileName = "fileName";
+    const fileValue = "fileValue";
+    mockFileDirectory.write.write([fileName, fileValue]);
+    const mockFunctionsRouter = await hre.viem.deployContract("MockFunctionsRouter" as string, []);
+    const contentNFT = await hre.viem.deployContract("ContentNFT" as string, [
+      nftName,
+      nftSymbol,
+      storyProtocolConfig.sepolia.ipAssetRegistry,
+      nullAddress,
+    ]);
+    const storyBranchMinterL1 = await hre.viem.deployContract("StoryBranchMinterL1Exposure" as string, [
+      mockFunctionsRouter.address,
+      0,
+      0,
+      nullBytes32,
+      contentNFT.address,
+    ]);
+    await contentNFT.write.setBranchMinterL1([storyBranchMinterL1.address, true]);
+    const [signerAddress] = await signer.getAddresses();
+    await contentNFT.write.mintRoot([
+      mockFileDirectory.address,
+      ethers.utils.hexlify(ethers.utils.toUtf8Bytes(fileName)),
+    ]);
+    const rootTokenId = 0;
+    expect(await contentNFT.read.ownerOf([rootTokenId])).to.equal(signerAddress);
+    await storyBranchMinterL1.write.startBranchContent([rootTokenId]);
+    const contentId = await storyBranchMinterL1.read.activeBranchContentIds([signerAddress]);
+    const oracleRespond1 = "oracleResponse1";
+    await storyBranchMinterL1.write.exposeProcessOracleRespond([contentId, oracleRespond1]);
+    const userInteract1 = "userInteraction1";
+    await storyBranchMinterL1.write.interactFromCreator([userInteract1]);
+    const oracleRespond2 = "oracleResponse2";
+    await storyBranchMinterL1.write.exposeProcessOracleRespond([contentId, oracleRespond2]);
+    await storyBranchMinterL1.write.endBranchContent();
+    const branchTokenId = 1;
+    expect(await contentNFT.read.ownerOf([branchTokenId])).to.equal(signerAddress);
 
-      // contentNFT.write.mintRoot();
-      // await contentNFT.write.
-    });
+    // check views
+    // const content = await storyBranchMinterL1.read.getContent([contentId]);
+    // console.log(content);
+    // const read = await storyBranchMinterL1.read.read([contentId]);
+    // console.log(read);
   });
 
   // describe("Start", function () {

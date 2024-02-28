@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.23;
 
 // import "hardhat/console.sol";
 
@@ -24,8 +24,8 @@ abstract contract StoryBranchMinter is FunctionsClient {
     }
 
     mapping(address => uint256) public activeBranchContentIds;
+    mapping(uint256 => uint256) public rootTokenIds;
     mapping(uint256 => Status) public statuses;
-    mapping(uint256 => RootContentLocatioin) public rootContentLocations;
     mapping(uint256 => string[]) public oracleResponses;
     mapping(uint256 => string[]) public creatorInteractions;
     mapping(bytes32 => uint256) public functionRequestIdToBranchContentId;
@@ -50,102 +50,130 @@ abstract contract StoryBranchMinter is FunctionsClient {
     uint256 public branchContentIndex;
 
     constructor(
-        address _functionRouter,
-        uint64 _functionSubscriptionId,
-        uint32 _functionGasLimit,
-        bytes32 _functionDonId
-    ) FunctionsClient(_functionRouter) {
-        subscriptionId = _functionSubscriptionId;
-        functionGasLimit = _functionGasLimit;
-        functionDonId = _functionDonId;
+        address functionRouter,
+        uint64 functionSubscriptionId,
+        uint32 functionGasLimit_,
+        bytes32 functionDonId_
+    ) FunctionsClient(functionRouter) {
+        subscriptionId = functionSubscriptionId;
+        functionGasLimit = functionGasLimit_;
+        functionDonId = functionDonId_;
     }
 
     function _startBranchContent(
-        address _directory,
-        bytes memory _name,
-        address _creator
+        uint256 rootContentTokenId,
+        address creator
     ) internal {
         require(
-            activeBranchContentIds[_creator] == 0,
+            activeBranchContentIds[creator] == 0,
             "StoryBranchMinter: already have active branch content"
         );
         branchContentIndex++;
-        uint256 _branchContentId = branchContentIndex;
-        activeBranchContentIds[_creator] = _branchContentId;
-        statuses[_branchContentId] = Status.WaitingOracleResponse;
-        rootContentLocations[_branchContentId] = RootContentLocatioin({
-            directory: _directory,
-            name: _name
-        });
-        _sendRequestToChainlink(_branchContentId);
+        uint256 branchContentId = branchContentIndex;
+        activeBranchContentIds[creator] = branchContentId;
+        statuses[branchContentId] = Status.WaitingOracleResponse;
+        rootTokenIds[branchContentId] = rootContentTokenId;
+        _sendRequestToChainlink(branchContentId);
     }
 
-    function _endBranchContent(address _creator) internal {
+    function _endBranchContent(address creator) internal {
         require(
-            activeBranchContentIds[_creator] != 0,
+            activeBranchContentIds[creator] != 0,
             "StoryBranchMinter: no active branch content"
         );
-        uint256 _branchContentId = activeBranchContentIds[_creator];
+        uint256 branchContentId = activeBranchContentIds[creator];
         require(
-            statuses[_branchContentId] == Status.WaitingUserInteraction,
+            statuses[branchContentId] == Status.WaitingUserInteraction,
             "StoryBranchMinter: Invalid status"
         );
-        delete activeBranchContentIds[_creator];
-        statuses[_branchContentId] = Status.Ended;
+        delete activeBranchContentIds[creator];
+        statuses[branchContentId] = Status.Ended;
     }
 
     function interactFromCreator(string memory interaction) public {
-        address _creator = msg.sender;
+        address creator = msg.sender;
         require(
-            activeBranchContentIds[_creator] != 0,
+            activeBranchContentIds[creator] != 0,
             "StoryBranchMinter: already have active branch content"
         );
-        uint256 _branchContentId = activeBranchContentIds[_creator];
+        uint256 branchContentId = activeBranchContentIds[creator];
         require(
-            statuses[_branchContentId] == Status.WaitingUserInteraction,
+            statuses[branchContentId] == Status.WaitingUserInteraction,
             "StoryBranchMinter: Invalid status"
         );
-        statuses[_branchContentId] = Status.WaitingOracleResponse;
-        _sendRequestToChainlink(_branchContentId);
+        statuses[branchContentId] = Status.WaitingOracleResponse;
+        creatorInteractions[branchContentId].push(interaction);
+        _sendRequestToChainlink(branchContentId);
     }
 
     function _processOracleRespond(
-        uint256 _branchContentId,
-        string memory _response
+        uint256 branchContentId,
+        string memory response
     ) internal {
         require(
-            statuses[_branchContentId] == Status.WaitingOracleResponse,
+            statuses[branchContentId] == Status.WaitingOracleResponse,
             "StoryBranchMinter: Invalid status"
         );
-        statuses[_branchContentId] = Status.WaitingUserInteraction;
-        oracleResponses[_branchContentId].push(_response);
+        statuses[branchContentId] = Status.WaitingUserInteraction;
+        oracleResponses[branchContentId].push(response);
     }
 
-    function _sendRequestToChainlink(uint256 _branchContentId) internal {
+    function _sendRequestToChainlink(uint256 branchContentId) internal {
         FunctionsRequest.Request memory req;
         req.initializeRequestForInlineJavaScript(interactScript);
         string[] memory args = new string[](2);
         args[0] = block.chainid.toString();
-        args[1] = _branchContentId.toString();
+        args[1] = branchContentId.toString();
         req.setArgs(args);
-        bytes32 _requestId = _sendRequest(
+        bytes32 requestId = _sendRequest(
             req.encodeCBOR(),
             subscriptionId,
             functionGasLimit,
             functionDonId
         );
-        functionRequestIdToBranchContentId[_requestId] = _branchContentId;
+        functionRequestIdToBranchContentId[requestId] = branchContentId;
     }
 
     function fulfillRequest(
-        bytes32 _requestId,
-        bytes memory _response,
+        bytes32 requestId,
+        bytes memory response,
         bytes memory
     ) internal override {
-        string memory _content = abi.decode(_response, (string));
-        uint256 _branchContentId = functionRequestIdToBranchContentId[
-            _requestId
-        ];
-        _processOracleRespond(_branchContentId, _content);
+        string memory content = abi.decode(response, (string));
+        uint256 branchContentId = functionRequestIdToBranchContentId[requestId];
+        _processOracleRespond(branchContentId, content);
+    }
+
+    function getContent(
+        uint256 contentId
+    ) public view returns (uint256, string[] memory, string[] memory) {
+        return (
+            rootTokenIds[contentId],
+            oracleResponses[contentId],
+            creatorInteractions[contentId]
+        );
+    }
+
+    function read(uint256 contentId) public view returns (string memory) {
+        bytes memory result = abi.encodePacked(
+            "Story Root ID: ",
+            rootTokenIds[contentId].toString(),
+            "\n"
+        );
+        for (uint256 i = 0; i < oracleResponses[contentId].length; i++) {
+            result = abi.encodePacked(
+                result,
+                oracleResponses[contentId][i],
+                "\n"
+            );
+            if (creatorInteractions[contentId].length > i) {
+                result = abi.encodePacked(
+                    result,
+                    creatorInteractions[contentId][i],
+                    "\n"
+                );
+            }
+        }
+        return string(result);
     }
 }
