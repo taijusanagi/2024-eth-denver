@@ -10,4 +10,15 @@ interface IIPAssetRegistry {
         bool createAccount,
         bytes calldata metadata_
     ) external returns (address);
+
+    function register(
+        uint256[] calldata licenseIds,
+        bytes calldata royaltyContext,
+        uint256 chainId,
+        address tokenContract,
+        uint256 tokenId,
+        address resolverAddr,
+        bool createAccount,
+        bytes calldata metadata_
+    ) external returns (address);
 }

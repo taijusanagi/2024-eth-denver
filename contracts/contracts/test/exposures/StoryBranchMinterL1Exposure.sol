@@ -3,7 +3,7 @@ pragma solidity ^0.8.23;
 
 // import "hardhat/console.sol";
 
-import "..//StoryBranchMinterL1.sol";
+import "../../StoryBranchMinterL1.sol";
 
 contract StoryBranchMinterL1Exposure is StoryBranchMinterL1 {
     constructor(

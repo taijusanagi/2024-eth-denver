@@ -76,7 +76,7 @@ describe("Integration", function () {
       nftName,
       nftSymbol,
       storyProtocolConfig.sepolia.ipAssetRegistry,
-      nullAddress,
+      storyProtocolConfig.sepolia.ipResolver,
       storyProtocolConfig.sepolia.licensingModule,
       policyId,
     ]);
@@ -97,6 +97,7 @@ describe("Integration", function () {
     ]);
     const rootTokenId = 0;
     expect(await contentNFT.read.ownerOf([rootTokenId])).to.equal(signerAddress);
+
     await storyBranchMinterL1.write.startBranchContent([rootTokenId]);
     const contentId = await storyBranchMinterL1.read.activeBranchContentIds([signerAddress]);
     const oracleRespond1 = "oracleResponse1";

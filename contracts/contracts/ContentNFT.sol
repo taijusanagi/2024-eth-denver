@@ -46,6 +46,7 @@ contract ContentNFT is Ownable, ERC721, ERC1155Holder {
     mapping(uint256 => RootContentLocatioin) public rootContentLocations;
     mapping(uint256 => BranchContentLocatioin) public branchContentLocations;
     mapping(uint256 => address) public ipIds;
+    mapping(uint256 => uint256) public licenseIds;
 
     address public ipAssetRegistry;
     address public ipResolver;
@@ -96,7 +97,7 @@ contract ContentNFT is Ownable, ERC721, ERC1155Holder {
         _mint(address(this), tokenId);
         bytes memory metadata = abi.encode(
             IP.MetadataV1({
-                name: "Interactive Story Root:",
+                name: "Interactive Story Root",
                 hash: "",
                 registrationDate: uint64(block.timestamp),
                 registrant: address(this),
@@ -111,15 +112,17 @@ contract ContentNFT is Ownable, ERC721, ERC1155Holder {
             true,
             metadata
         );
+        ipIds[tokenId] = ipId;
 
         // then mint license to creator
-        ILicensingModule(licensingModule).mintLicense(
+        uint256 licenceId = ILicensingModule(licensingModule).mintLicense(
             policyId,
             ipId,
             licenseAmount,
             address(this),
             ""
         );
+        licenseIds[tokenId] = licenceId;
 
         // then give the nft back to creator
         this.transferFrom(address(this), msg.sender, tokenId);
@@ -128,23 +131,13 @@ contract ContentNFT is Ownable, ERC721, ERC1155Holder {
     }
 
     function mintBranch(
+        uint256 rootTokenId,
         uint256 chainId,
         address directory,
         uint256 index,
         address creator
     ) public {
         require(isbranchMinterL1[msg.sender], "ContentNFT: Invalid sender");
-        // PILPolicy memory pilPolicy;
-        // address licensorIpId;
-        // spg.mintLicensePIL(
-        //     pilPolicy,
-        //     licensorIpId,
-        //     1,
-        //     ROYATY_CONTEXT,
-        //     MINTING_FEE,
-        //     MINTING_FEE_TOKNE
-        // );
-
         uint256 tokenId = totalSupply;
         totalSupply++;
         BranchContentLocatioin
@@ -155,7 +148,34 @@ contract ContentNFT is Ownable, ERC721, ERC1155Holder {
             });
         contentTypes[tokenId] = ContentType.Branch;
         branchContentLocations[tokenId] = branchContentLocation;
-        _mint(creator, tokenId);
+        _mint(address(this), tokenId);
+
+        bytes memory metadata = abi.encode(
+            IP.MetadataV1({
+                name: "Interactive Story Branch",
+                hash: "",
+                registrationDate: uint64(block.timestamp),
+                registrant: creator,
+                uri: ""
+            })
+        );
+        uint256 licenseId = licenseIds[rootTokenId];
+
+        uint256[] memory licenseIds = new uint256[](1);
+        licenseIds[0] = licenseId;
+        address ipId = IIPAssetRegistry(ipAssetRegistry).register(
+            licenseIds,
+            bytes("0x"),
+            block.chainid,
+            address(this),
+            tokenId,
+            ipResolver,
+            true,
+            metadata
+        );
+
+        this.transferFrom(address(this), creator, tokenId);
+
         emit BranchContentMinted(tokenId, creator, branchContentLocation);
     }
 
