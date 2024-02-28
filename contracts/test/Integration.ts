@@ -17,12 +17,16 @@ describe("Integration", function () {
     const fileValue = "fileValue";
     mockFileDirectory.write.write([fileName, fileValue]);
     const mockAssetRegistry = await hre.viem.deployContract("MockAssetRegistry" as string, []);
+    const mockLicensingModule = await hre.viem.deployContract("MockLicensingModule" as string, []);
     const mockFunctionsRouter = await hre.viem.deployContract("MockFunctionsRouter" as string, []);
+    const policyId = 1;
     const contentNFT = await hre.viem.deployContract("ContentNFT" as string, [
       nftName,
       nftSymbol,
       mockAssetRegistry.address,
       nullAddress,
+      mockLicensingModule.address,
+      policyId,
     ]);
     const storyBranchMinterL1 = await hre.viem.deployContract("StoryBranchMinterL1Exposure" as string, [
       mockFunctionsRouter.address,
@@ -33,9 +37,11 @@ describe("Integration", function () {
     ]);
     await contentNFT.write.setBranchMinterL1([storyBranchMinterL1.address, true]);
     const [signerAddress] = await signer.getAddresses();
+    const licenceAmount = 1;
     await contentNFT.write.mintRoot([
       mockFileDirectory.address,
       ethers.utils.hexlify(ethers.utils.toUtf8Bytes(fileName)),
+      licenceAmount,
     ]);
     const rootTokenId = 0;
     expect(await contentNFT.read.ownerOf([rootTokenId])).to.equal(signerAddress);
@@ -65,11 +71,14 @@ describe("Integration", function () {
     const fileValue = "fileValue";
     mockFileDirectory.write.write([fileName, fileValue]);
     const mockFunctionsRouter = await hre.viem.deployContract("MockFunctionsRouter" as string, []);
+    const policyId = 1;
     const contentNFT = await hre.viem.deployContract("ContentNFT" as string, [
       nftName,
       nftSymbol,
       storyProtocolConfig.sepolia.ipAssetRegistry,
       nullAddress,
+      storyProtocolConfig.sepolia.licensingModule,
+      policyId,
     ]);
     const storyBranchMinterL1 = await hre.viem.deployContract("StoryBranchMinterL1Exposure" as string, [
       mockFunctionsRouter.address,
@@ -80,9 +89,11 @@ describe("Integration", function () {
     ]);
     await contentNFT.write.setBranchMinterL1([storyBranchMinterL1.address, true]);
     const [signerAddress] = await signer.getAddresses();
+    const licenceAmount = 10;
     await contentNFT.write.mintRoot([
       mockFileDirectory.address,
       ethers.utils.hexlify(ethers.utils.toUtf8Bytes(fileName)),
+      licenceAmount,
     ]);
     const rootTokenId = 0;
     expect(await contentNFT.read.ownerOf([rootTokenId])).to.equal(signerAddress);

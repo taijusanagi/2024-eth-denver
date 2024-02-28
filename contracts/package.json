@@ -1,6 +1,7 @@
 {
   "name": "hardhat-project",
   "scripts": {
+    "build": "hardhat compile",
     "test": "hardhat test"
   },
   "devDependencies": {
@@ -11,8 +12,8 @@
   "dependencies": {
     "@chainlink/contracts": "^0.8.0",
     "@openzeppelin/contracts": "^5.0.1",
-    "@story-protocol/contracts": "github:storyprotocol/protocol-core#c84d0a68f9bac17ce7b7b12ccfccd2fc5e49d0c8",
-    "ethers": "^5.7.2",
-    "solidity-template": "github:storyprotocol/protocol-periphery#e4d6de422993c42cff8490620bd7d3bb9a5d08c7"
+    "@storyprotocol/contracts": "github:storyprotocol/protocol-core#beta-rc5",
+    "@storyprotocol/periphery": "github:storyprotocol/protocol-periphery#main",
+    "ethers": "^5.7.2"
   }
 }

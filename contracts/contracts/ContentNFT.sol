@@ -5,13 +5,14 @@ pragma solidity ^0.8.23;
 
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {ERC721} from "@openzeppelin/contracts/token/ERC721/ERC721.sol";
-import {IP} from "@story-protocol/contracts/contracts/lib/IP.sol";
-import {IPAssetRegistry} from "@story-protocol/contracts/contracts/registries/IPAssetRegistry.sol";
-import {IPResolver} from "@story-protocol/contracts/contracts/resolvers/IPResolver.sol";
-// import {ILicensingModule} from "@storyprotocol/contracts/contracts/interfaces/modules/licensing/ILicensingModule.sol";
-// import {StoryProtocolGateway} from "solidity-template/contracts/StoryProtocolGateway.sol";
+// import {ERC721Holder} from "@openzeppelin/contracts/token/ERC721/utils/ERC721Holder.sol";
+import {ERC1155Holder} from "@openzeppelin/contracts/token/ERC1155/utils/ERC1155Holder.sol";
 
-contract ContentNFT is Ownable, ERC721 {
+import {IP} from "./story-protocol/IP.sol";
+import {IIPAssetRegistry} from "./story-protocol/IIPAssetRegistry.sol";
+import {ILicensingModule} from "./story-protocol/ILicensingModule.sol";
+
+contract ContentNFT is Ownable, ERC721, ERC1155Holder {
     enum ContentType {
         Root,
         Branch
@@ -46,20 +47,25 @@ contract ContentNFT is Ownable, ERC721 {
     mapping(uint256 => BranchContentLocatioin) public branchContentLocations;
     mapping(uint256 => address) public ipIds;
 
-    IPAssetRegistry public ipAssetRegistry;
-    IPResolver public ipResolver;
-    // StoryProtocolGateway immutable spg;
+    address public ipAssetRegistry;
+    address public ipResolver;
+    address public licensingModule;
+    uint256 public policyId;
     uint256 public totalSupply;
 
     // StoryProtocolGateway spg_
     constructor(
         string memory name,
         string memory symbol,
-        IPAssetRegistry ipAssetRegistry_,
-        IPResolver ipResolver_
+        address ipAssetRegistry_,
+        address ipResolver_,
+        address licensingModule_,
+        uint256 policyId_
     ) Ownable(msg.sender) ERC721(name, symbol) {
         ipAssetRegistry = ipAssetRegistry_;
         ipResolver = ipResolver_;
+        licensingModule = licensingModule_;
+        policyId = policyId_;
         // spg = spg_;
     }
 
@@ -71,7 +77,11 @@ contract ContentNFT is Ownable, ERC721 {
         emit branchMinterL1Set(branchMinterL1, status);
     }
 
-    function mintRoot(address directory, bytes memory fileName) public {
+    function mintRoot(
+        address directory,
+        bytes memory fileName,
+        uint256 licenseAmount
+    ) public {
         uint256 tokenId = totalSupply;
         totalSupply++;
         // should improve to check the content using ETHStorage better
@@ -93,16 +103,27 @@ contract ContentNFT is Ownable, ERC721 {
                 uri: ""
             })
         );
-        address ipId = ipAssetRegistry.register(
+        address ipId = IIPAssetRegistry(ipAssetRegistry).register(
             block.chainid,
             address(this),
             tokenId,
-            address(ipResolver),
+            ipResolver,
             true,
             metadata
         );
+
+        // then mint license to creator
+        ILicensingModule(licensingModule).mintLicense(
+            policyId,
+            ipId,
+            licenseAmount,
+            address(this),
+            ""
+        );
+
         // then give the nft back to creator
         this.transferFrom(address(this), msg.sender, tokenId);
+
         emit RootContentMinted(tokenId, msg.sender, rootContentLocation);
     }
 
@@ -160,4 +181,10 @@ contract ContentNFT is Ownable, ERC721 {
     //     }
     //     return (allBaseStories, allResponses, allInteractions);
     // }
+
+    function supportsInterface(
+        bytes4 interfaceId
+    ) public view override(ERC721, ERC1155Holder) returns (bool) {
+        return super.supportsInterface(interfaceId);
+    }
 }
