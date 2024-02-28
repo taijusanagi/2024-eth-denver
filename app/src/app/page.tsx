@@ -1,10 +1,25 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { MdArrowBackIos } from "react-icons/md";
 
+import { useAccount, useWriteContract } from "wagmi";
+import { useEthersSigner } from "@/lib/ethers";
+import { ethers } from "ethers";
+import { contentNFTAbi, contentNFTAddress } from "@/lib/contracts";
+
+// content name is modified in backend like ${name}-1709156261098.txt
+// so this can be removed in frontend for better display
+const namePrefixLength = 18;
+const defaultPolicyId = 1;
+const defaultLicenseAmount = 100;
+
 export default function CreatorPage() {
+  const { address: connectedAddress } = useAccount();
+  const signer = useEthersSigner();
+  const { writeContract, error, data } = useWriteContract();
+
   const [mode, setMode] = useState<
     "viewStoryRoots" | "createStoryRoot" | "viewStoryRoot" | "viewStoryBranch" | "createStoryBranch"
   >("viewStoryRoots");
@@ -38,8 +53,26 @@ export default function CreatorPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   // dev
+  const [policyId] = useState(defaultPolicyId);
+  const [licenceAmount] = useState(defaultLicenseAmount);
+  const [creatingStoryRootName, setCreatingStoryRootName] = useState("");
+  const [creatingStoryRootContent, setCreatingStoryRootContent] = useState("");
   const storyBranchContent = ``;
   const storyBranchContentLengthInPage = 80;
+
+  useEffect(() => {
+    if (!error) {
+      return;
+    }
+    console.log(error);
+  }, [error]);
+
+  useEffect(() => {
+    if (!data) {
+      return;
+    }
+    console.log(data);
+  }, [data]);
 
   return (
     <main className="min-h-screen flex flex-col bg-gradient-to-br from-violet-300 to-pink-300 font-poppins">
@@ -95,16 +128,106 @@ export default function CreatorPage() {
             <div>
               <h2 className="text-lg font-semibold text-gray-800 mb-4">Create Story Root</h2>
               <div className="mb-4">
-                <div className="flex justify-between">
-                  <label className="block text-sm font-medium text-gray-700">Prompt</label>
+                <div className="flex justify-between mb-2">
+                  <label className="block text-sm font-medium text-gray-700">Content Name</label>
                 </div>
-                <textarea className="h-[45vh] mt-1 block w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-sm"></textarea>
+                <input
+                  type="text"
+                  className="mt-1 block w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-sm disabled:bg-gray-200 disabled:border-gray-200 disabled:text-gray-500 disabled:cursor-not-allowed"
+                  value={creatingStoryRootName}
+                  onChange={(e) => {
+                    setCreatingStoryRootName(e.target.value);
+                  }}
+                />
+              </div>
+              <div className="mb-4">
+                <div className="flex justify-between mb-2">
+                  <label className="block text-sm font-medium text-gray-700">Story Protocol Policy ID</label>
+                </div>
+                <input
+                  type="text"
+                  className="mt-1 block w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-sm disabled:bg-gray-200 disabled:border-gray-200 disabled:text-gray-500 disabled:cursor-not-allowed"
+                  value={policyId}
+                  disabled
+                />
+              </div>
+              <div className="mb-4">
+                <div className="flex justify-between mb-2">
+                  <label className="block text-sm font-medium text-gray-700">Story Protocol License Amount</label>
+                </div>
+                <input
+                  type="text"
+                  className="mt-1 block w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-sm disabled:bg-gray-200 disabled:border-gray-200 disabled:text-gray-500 disabled:cursor-not-allowed"
+                  value={licenceAmount}
+                  disabled
+                />
+              </div>
+              <div className="mb-4">
+                <div className="flex justify-between mb-2">
+                  <label className="block text-sm font-medium text-gray-700">Content Prompt</label>
+                </div>
+                <textarea
+                  rows={20}
+                  className="block w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-sm disabled:bg-gray-200 disabled:border-gray-200 disabled:text-gray-500 disabled:cursor-not-allowed"
+                  value={creatingStoryRootContent}
+                  onChange={(e) => {
+                    setCreatingStoryRootContent(e.target.value);
+                  }}
+                ></textarea>
               </div>
               <div>
                 <button
-                  className="w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none"
-                  onClick={() => {
-                    setIsModalOpen(true);
+                  className="w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none disabled:bg-indigo-300 disabled:cursor-not-allowed disabled:opacity-50"
+                  disabled={
+                    !creatingStoryRootName ||
+                    creatingStoryRootName.length > 100 ||
+                    !creatingStoryRootContent ||
+                    creatingStoryRootContent.length > 10000
+                  }
+                  onClick={async () => {
+                    if (!signer) {
+                      return;
+                    }
+
+                    console.log("start create story root...");
+                    const url = `${process.env.NEXT_PUBLIC_APP_URL}/api/upload`;
+                    const options = {
+                      method: "POST",
+                      headers: {
+                        "Content-Type": "application/json",
+                      },
+                      body: JSON.stringify({
+                        name: creatingStoryRootName,
+                        content: creatingStoryRootContent,
+                      }),
+                    };
+                    console.log("uploading to eth storage...");
+                    const data = await fetch(url, options)
+                      .then((response) => {
+                        if (!response.ok) {
+                          return response.text().then((text) => {
+                            throw new Error(text);
+                          });
+                        }
+                        return response.json();
+                      })
+                      .catch((error) => {
+                        console.error("Error uploading data:", error);
+                      });
+                    if (!data) {
+                      return;
+                    }
+                    const { data: ethstorageUloadResponse } = data;
+                    console.log("ethstorageUloadResponse", ethstorageUloadResponse);
+                    console.log("mint root nft and register in story protocol...");
+                    const contract = new ethers.Contract(contentNFTAddress, contentNFTAbi, signer);
+                    const tx = await contract.mintRoot(
+                      ethstorageUloadResponse.directory,
+                      ethers.utils.hexlify(ethers.utils.toUtf8Bytes(ethstorageUloadResponse.name)),
+                      licenceAmount
+                    );
+                    console.log("done!!");
+                    console.log(tx.hash);
                   }}
                 >
                   Create

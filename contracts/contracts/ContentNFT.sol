@@ -13,6 +13,9 @@ import {IP} from "./story-protocol/IP.sol";
 import {IIPAssetRegistry} from "./story-protocol/IIPAssetRegistry.sol";
 import {ILicensingModule} from "./story-protocol/ILicensingModule.sol";
 
+// TODO; add event
+// TODO: add policy ID to mint input instead of contract
+
 contract ContentNFT is Ownable, ERC721, ERC1155Holder {
     enum ContentType {
         Root,
