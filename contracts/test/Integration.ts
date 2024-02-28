@@ -1,5 +1,5 @@
 import hre from "hardhat";
-import { getContract, createWalletClient } from "viem";
+import { getContract } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { expect } from "chai";
 import { ethers } from "ethers";
@@ -7,7 +7,7 @@ import { ethers } from "ethers";
 import { chainlinkConfig, functionRouterABI } from "../lib/chainlink";
 import { storyProtocolConfig } from "../lib/story-protocol";
 
-import { nftName, nftSymbol, nullBytes32, nullBytes, nullAddress } from "../lib/constants";
+import { nftName, nftSymbol, nullBytes32, nullAddress } from "../lib/constants";
 
 describe("Integration", function () {
   it("Should work with mock", async function () {
@@ -56,15 +56,14 @@ describe("Integration", function () {
     await storyBranchMinterL1.write.endBranchContent();
     const branchTokenId = 1;
     expect(await contentNFT.read.ownerOf([branchTokenId])).to.equal(signerAddress);
+    // other uint test
+    expect(await contentNFT.read.stringToUint(["1"])).to.equal(BigInt(1));
 
     // check views
     // const content = await storyBranchMinterL1.read.getContent([contentId]);
     // console.log(content);
     // const read = await storyBranchMinterL1.read.read([contentId]);
     // console.log(read);
-
-    // other uint test
-    expect(await contentNFT.read.stringToUint(["1"])).to.equal(BigInt(1));
   });
 
   it("Should work with forked story protocol", async function () {
@@ -100,7 +99,6 @@ describe("Integration", function () {
     ]);
     const rootTokenId = 0;
     expect(await contentNFT.read.ownerOf([rootTokenId])).to.equal(signerAddress);
-
     await storyBranchMinterL1.write.startBranchContent([rootTokenId]);
     const contentId = await storyBranchMinterL1.read.activeBranchContentIds([signerAddress]);
     const oracleRespond1 = "oracleResponse1";

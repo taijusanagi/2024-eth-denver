@@ -55,7 +55,6 @@ contract ContentNFT is Ownable, ERC721, ERC1155Holder {
     uint256 public policyId;
     uint256 public totalSupply;
 
-    // StoryProtocolGateway spg_
     constructor(
         string memory name,
         string memory symbol,
@@ -68,7 +67,6 @@ contract ContentNFT is Ownable, ERC721, ERC1155Holder {
         ipResolver = ipResolver_;
         licensingModule = licensingModule_;
         policyId = policyId_;
-        // spg = spg_;
     }
 
     function setBranchMinterL1(
@@ -180,31 +178,7 @@ contract ContentNFT is Ownable, ERC721, ERC1155Holder {
         emit BranchContentMinted(tokenId, creator, branchContentLocation);
     }
 
-    // function read(uint256 tokenId) public view returns (bytes memory) {
-    //     RootContentLocation memory rootContentLocation = rootContentLocations[
-    //         tokenId
-    //     ];
-    //     return
-    //         IERC5018(rootContentLocation.directory).read(
-    //             rootContentLocation.name
-    //         );
-    // }
-
-    // function resolveMode() external pure virtual returns (bytes32) {
-    //     return "manual";
-    // }
-
-    // fallback(bytes calldata pathinfo) external returns (bytes memory) {
-    //     if (pathinfo.length == 0) {
-    //         return bytes("");
-    //     } else if (pathinfo[0] != 0x2f) {
-    //         return bytes("incorrect path");
-    //     }
-    //     uint256 tokenId = pathinfo[1:];
-    //     bytes memory content = read(tokenId);
-    //     return content;
-    // }
-
+    // ERC1155Holder is required to hold Story Protocol license
     function supportsInterface(
         bytes4 interfaceId
     ) public view override(ERC721, ERC1155Holder) returns (bool) {

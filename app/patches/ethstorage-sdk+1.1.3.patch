@@ -1,0 +1,17 @@
+diff --git a/node_modules/ethstorage-sdk/src/uploader.js b/node_modules/ethstorage-sdk/src/uploader.js
+index 5bcd57f..7b93033 100644
+--- a/node_modules/ethstorage-sdk/src/uploader.js
++++ b/node_modules/ethstorage-sdk/src/uploader.js
+@@ -79,7 +79,11 @@ class BlobUploader {
+         this.#wallet = new ethers.Wallet(this.#privateKey, this.#provider);
+ 
+         const SETUP_FILE_PATH = resolve(__dirname, "lib", "trusted_setup.txt");
+-        loadTrustedSetup(SETUP_FILE_PATH);
++        try{
++            loadTrustedSetup(SETUP_FILE_PATH);
++        } catch(e){
++            console.log(e.message);
++        }
+     }
+ 
+     async sendRpcCall(method, parameters) {
