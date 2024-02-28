@@ -1,3 +1,29 @@
+diff --git a/node_modules/ethstorage-sdk/src/blobs.js b/node_modules/ethstorage-sdk/src/blobs.js
+index e08562c..79ff680 100644
+--- a/node_modules/ethstorage-sdk/src/blobs.js
++++ b/node_modules/ethstorage-sdk/src/blobs.js
+@@ -111,7 +111,7 @@ function copy(src, srcOff, des, desOff) {
+     const srcLength = src.length - srcOff;
+     const desLength = des.length - desOff;
+     const length = Math.min(srcLength, desLength);
+-    src.set(des.slice(desOff, length), srcOff);
++    src.set(des.slice(desOff, desOff + length), srcOff);
+     return length;
+ }
+ 
+diff --git a/node_modules/ethstorage-sdk/src/ethstorage.js b/node_modules/ethstorage-sdk/src/ethstorage.js
+index 67813c0..dc8de7d 100644
+--- a/node_modules/ethstorage-sdk/src/ethstorage.js
++++ b/node_modules/ethstorage-sdk/src/ethstorage.js
+@@ -201,6 +201,8 @@ class EthStorage {
+                 }
+             }
+ 
++            console.log("blobArr.length", blobArr.length)
++
+             // check
+             if (clearState === REMOVE_NORMAL) {
+                 let hasChange = false;
 diff --git a/node_modules/ethstorage-sdk/src/uploader.js b/node_modules/ethstorage-sdk/src/uploader.js
 index 5bcd57f..7b93033 100644
 --- a/node_modules/ethstorage-sdk/src/uploader.js

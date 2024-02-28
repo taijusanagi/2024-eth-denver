@@ -6,22 +6,33 @@ const path = require("path");
 const util = require("util");
 const writeFileAsync = util.promisify(fs.writeFile);
 
-const { EthStorage } = require("ethstorage-sdk");
+const { EthStorage, EncodeOpBlobs } = require("ethstorage-sdk");
 
 type ResponseData = {
-  data: {
+  data?: {
     directory: string;
     name: string;
   };
+  error?: string;
 };
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<ResponseData>) {
-  console.log(req.query);
+  if (!req.body.content) {
+    res.status(400).json({ error: "No content provided" });
+    return;
+  }
+  const blob = EncodeOpBlobs(Buffer.from(req.body.content));
+  // console.log(blob);
+  console.log("blob.length", blob.length);
   const privateKey = process.env.ETH_STORAGE_SIGNER_PRIVATE_KEY; // 0x71165Cf095cc1A0F1649F5E249B1b9d3CB7Bfd02
   const rpc = process.env.ETH_STORAGE_BLOB_UPLOAD_RPC;
   const deployedSepoliaBlobDirectory = "0x53E2e6379a5697f09C8Eedd4fE05Da4f9A977269";
   const ethStorage = new EthStorage(rpc, privateKey, deployedSepoliaBlobDirectory);
-  const content = "hello world!!     ";
+  // current eth storage implementation requires a 5 blank postfix
+
+  const content = `${req.body.content}     `;
+  console.log("content.length", content.length);
+  // console.log(content);
   // Create a temporary file path
   const tempDir = os.tmpdir();
   const fileName = `${Date.now()}.txt`;
@@ -31,6 +42,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
   await writeFileAsync(tempFilePath, content);
   try {
     // Upload the file using its path
+    // TODO: error handling
     ethStorage.upload(tempFilePath).then(() => {
       fs.unlink(tempFilePath, (err: Error) => {
         if (err) console.error("Error removing temporary file:", err);
