@@ -8,6 +8,7 @@ import {ERC721} from "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 // import {ERC721Holder} from "@openzeppelin/contracts/token/ERC721/utils/ERC721Holder.sol";
 import {ERC1155Holder} from "@openzeppelin/contracts/token/ERC1155/utils/ERC1155Holder.sol";
 
+import {IERC5018} from "./eth-storage/IERC5018.sol";
 import {IP} from "./story-protocol/IP.sol";
 import {IIPAssetRegistry} from "./story-protocol/IIPAssetRegistry.sol";
 import {ILicensingModule} from "./story-protocol/ILicensingModule.sol";
@@ -19,7 +20,7 @@ contract ContentNFT is Ownable, ERC721, ERC1155Holder {
     }
 
     // ETHStorage File Location
-    struct RootContentLocatioin {
+    struct RootContentLocation {
         address directory;
         bytes name;
     }
@@ -33,7 +34,7 @@ contract ContentNFT is Ownable, ERC721, ERC1155Holder {
     event RootContentMinted(
         uint256 indexed tokenId,
         address indexed creator,
-        RootContentLocatioin rootContentLocation
+        RootContentLocation rootContentLocation
     );
     event BranchContentMinted(
         uint256 indexed tokenId,
@@ -43,7 +44,7 @@ contract ContentNFT is Ownable, ERC721, ERC1155Holder {
 
     mapping(address => bool) public isbranchMinterL1;
     mapping(uint256 => ContentType) public contentTypes;
-    mapping(uint256 => RootContentLocatioin) public rootContentLocations;
+    mapping(uint256 => RootContentLocation) public rootContentLocations;
     mapping(uint256 => BranchContentLocatioin) public branchContentLocations;
     mapping(uint256 => address) public ipIds;
     mapping(uint256 => uint256) public licenseIds;
@@ -86,7 +87,7 @@ contract ContentNFT is Ownable, ERC721, ERC1155Holder {
         uint256 tokenId = totalSupply;
         totalSupply++;
         // should improve to check the content using ETHStorage better
-        RootContentLocatioin memory rootContentLocation = RootContentLocatioin({
+        RootContentLocation memory rootContentLocation = RootContentLocation({
             directory: directory,
             name: fileName
         });
@@ -179,32 +180,86 @@ contract ContentNFT is Ownable, ERC721, ERC1155Holder {
         emit BranchContentMinted(tokenId, creator, branchContentLocation);
     }
 
-    // function getStory(
-    //     uint256 index
-    // ) public view returns (string memory, string[] memory, string[] memory) {
-    //     return (baseStory, responses[index], interactions[index]);
+    // function read(uint256 tokenId) public view returns (bytes memory) {
+    //     RootContentLocation memory rootContentLocation = rootContentLocations[
+    //         tokenId
+    //     ];
+    //     return
+    //         IERC5018(rootContentLocation.directory).read(
+    //             rootContentLocation.name
+    //         );
     // }
 
-    // // this may cause error when too many story is created but ok for demo
-    // function getAllStories()
-    //     public
-    //     view
-    //     returns (string[] memory, string[][] memory, string[][] memory)
-    // {
-    //     string[] memory allBaseStories = new string[](totalStoryIndex);
-    //     string[][] memory allResponses = new string[][](totalStoryIndex);
-    //     string[][] memory allInteractions = new string[][](totalStoryIndex);
-    //     for (uint256 i = 0; i <= totalStoryIndex; i++) {
-    //         allBaseStories[i] = baseStory;
-    //         allResponses[i] = responses[i];
-    //         allInteractions[i] = interactions[i];
+    // function resolveMode() external pure virtual returns (bytes32) {
+    //     return "manual";
+    // }
+
+    // fallback(bytes calldata pathinfo) external returns (bytes memory) {
+    //     if (pathinfo.length == 0) {
+    //         return bytes("");
+    //     } else if (pathinfo[0] != 0x2f) {
+    //         return bytes("incorrect path");
     //     }
-    //     return (allBaseStories, allResponses, allInteractions);
+    //     uint256 tokenId = pathinfo[1:];
+    //     bytes memory content = read(tokenId);
+    //     return content;
     // }
 
     function supportsInterface(
         bytes4 interfaceId
     ) public view override(ERC721, ERC1155Holder) returns (bool) {
         return super.supportsInterface(interfaceId);
+    }
+
+    /*
+     * ETHStorage & Web3 URL implementation
+     */
+
+    // read function to get the main content from eth storage
+    // note: if the content is stored with blob, must use EThStorage node proxy in web3 url query
+    function read(uint256 tokenId) public view returns (bytes memory) {
+        RootContentLocation memory rootContentLocation = rootContentLocations[
+            tokenId
+        ];
+        (bytes memory content, bool result) = IERC5018(
+            rootContentLocation.directory
+        ).read(rootContentLocation.name);
+        if (!result) {
+            return bytes("");
+        } else {
+            return content;
+        }
+    }
+
+    // to define web3 url path
+    function resolveMode() external pure virtual returns (bytes32) {
+        return "manual";
+    }
+
+    // https://ethereum.stackexchange.com/questions/10932/how-to-convert-string-to-int
+    function stringToUint(string memory s) public pure returns (uint) {
+        bytes memory b = bytes(s);
+        uint result = 0;
+        for (uint256 i = 0; i < b.length; i++) {
+            uint256 c = uint256(uint8(b[i]));
+            if (c >= 48 && c <= 57) {
+                result = result * 10 + (c - 48);
+            }
+        }
+        return result;
+    }
+
+    // take token id from query, then return the content
+    // TODO: if we have time implement viewer design with html
+    fallback(bytes calldata pathinfo) external returns (bytes memory) {
+        if (pathinfo.length == 0) {
+            return bytes("");
+        } else if (pathinfo[0] != 0x2f) {
+            return bytes("incorrect path");
+        }
+        // TODO: error handling for invalid token id
+        uint256 tokenId = stringToUint(string(pathinfo[1:]));
+        bytes memory content = read(tokenId);
+        return content;
     }
 }
