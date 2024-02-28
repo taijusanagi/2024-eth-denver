@@ -15,6 +15,7 @@ import {ILicensingModule} from "./story-protocol/ILicensingModule.sol";
 
 // TODO; add event
 // TODO: add policy ID to mint input instead of contract
+// TODO; add story protocol info in the minting event
 
 contract ContentNFT is Ownable, ERC721, ERC1155Holder {
     enum ContentType {
