@@ -9,7 +9,7 @@ const writeFileAsync = util.promisify(fs.writeFile);
 
 const deployedSepoliaBlobDirectory = "0x53E2e6379a5697f09C8Eedd4fE05Da4f9A977269";
 const deployedSepoliaNormalDirectory = "0x0eb32D2424B048120043A35489CC5913C2d50108";
-const createdBlobFileName = "1709109877537.txt";
+const createdBlobFileName = "1709122873485.txt";
 const createdNormalFileName = "1708998813573.txt";
 
 const IERC5018Abi = [
@@ -87,7 +87,12 @@ async function uploadToBlobDirectory() {
   // should use rpc which suports blob upload
   const rpc = process.env.RPC;
   const ethStorage = new EthStorage(rpc, privateKey, deployedSepoliaBlobDirectory);
-  const content = fs.readFileSync("./test.txt", "utf-8");
+  const originalBuffer = fs.readFileSync("./test.txt"); // This is your original buffer
+  const modifiedString = originalBuffer.toString("utf-8") + " ".repeat(2000); // Convert buffer to string and append spaces
+  const content = Buffer.from(modifiedString, "utf-8");
+
+  // console.log(content.length);
+  // return;
 
   // Create a temporary file path
   const tempDir = os.tmpdir();
@@ -140,7 +145,7 @@ async function readFromBlobDirectory() {
   const [data] = await contract.read(ethers.utils.hexlify(ethers.utils.toUtf8Bytes(createdBlobFileName)));
   // console.log(data);
   const hex = ethers.utils.hexlify(data);
-  console.log(hex);
+  // console.log(hex);
   const str = ethers.utils.toUtf8String(data);
   console.log("result", str);
 }
@@ -159,5 +164,5 @@ async function readFromNormalDirectory() {
 // setupNormalDirectory();
 // uploadToBlobDirectory();
 // uploadToNormalDirectory();
-// readFromBlobDirectory();
+readFromBlobDirectory();
 // readFromNormalDirectory();

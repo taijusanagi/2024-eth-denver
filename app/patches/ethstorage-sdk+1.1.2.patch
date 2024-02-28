@@ -1,0 +1,81 @@
+diff --git a/node_modules/ethstorage-sdk/src/ethstorage.js b/node_modules/ethstorage-sdk/src/ethstorage.js
+index f2a933a..5526f88 100644
+--- a/node_modules/ethstorage-sdk/src/ethstorage.js
++++ b/node_modules/ethstorage-sdk/src/ethstorage.js
+@@ -156,6 +156,13 @@ class EthStorage {
+         let uploadCount = 0;
+         let uploadFileSize = 0;
+         let totalCost = 0n;
++
++        // assume the data should be within blob siez
++        if(blobLength > 1) {
++            throw Error("Custom Error: data is too large");   
++        }
++
++        let hash = ""
+         for (let i = 0; i < blobLength; i += MAX_BLOB_COUNT) {
+             const blobArr = [];
+             const indexArr = [];
+@@ -194,21 +201,24 @@ class EthStorage {
+                 const tx = await fileContract.writeChunks.populateTransaction(hexName, indexArr, lenArr, {
+                     value
+                 });
+-                const hash = await this.#blobUploader.sendTx(tx, blobArr);
++                hash = await this.#blobUploader.sendTx(tx, blobArr);
+                 console.log(`Transaction Id: ${hash}`);
+ 
+-                const txReceipt = await this.#blobUploader.getTxReceipt(hash);
+-                if (txReceipt && txReceipt.status) {
+-                    success = true;
+-                    totalCost += value;
+-                    uploadFileSize += BLOB_FILE_SIZE * indexArr.length;
+-                    if (i + indexArr.length === blobLength) {
+-                        uploadFileSize = uploadFileSize - BLOB_FILE_SIZE + lenArr[lenArr.length - 1];
++                // skip waiting for the tx receipt to return tx hash within nextjs timeout limit
++                this.#blobUploader.getTxReceipt(hash).then((txReceipt) => {
++                    if (txReceipt && txReceipt.status) {
++                        success = true;
++                        totalCost += value;
++                        uploadFileSize += BLOB_FILE_SIZE * indexArr.length;
++                        if (i + indexArr.length === blobLength) {
++                            uploadFileSize = uploadFileSize - BLOB_FILE_SIZE + lenArr[lenArr.length - 1];
++                        }
++                        uploadCount += indexArr.length;
++                        successIndex += indexArr.length;
++                        console.log(`File ${fileName} chunkId: ${indexArr} uploaded!`);
+                     }
+-                    uploadCount += indexArr.length;
+-                    successIndex += indexArr.length;
+-                    console.log(`File ${fileName} chunkId: ${indexArr} uploaded!`);
+-                }
++                });
++
+             } catch (e) {
+                 console.log('Error:' + e.message);
+             }
+@@ -217,6 +227,7 @@ class EthStorage {
+             }
+         }
+         return {
++            hash,
+             totalChunkCount: blobLength,
+             successIndex: successIndex,
+             uploadSuccessCount: uploadCount,
+diff --git a/node_modules/ethstorage-sdk/src/uploader.js b/node_modules/ethstorage-sdk/src/uploader.js
+index 5bcd57f..bf6d40c 100644
+--- a/node_modules/ethstorage-sdk/src/uploader.js
++++ b/node_modules/ethstorage-sdk/src/uploader.js
+@@ -79,7 +79,12 @@ class BlobUploader {
+         this.#wallet = new ethers.Wallet(this.#privateKey, this.#provider);
+ 
+         const SETUP_FILE_PATH = resolve(__dirname, "lib", "trusted_setup.txt");
+-        loadTrustedSetup(SETUP_FILE_PATH);
++        try {
++            loadTrustedSetup(SETUP_FILE_PATH);
++        }
++        catch (e) {
++            console.error(e.message);
++        }
+     }
+ 
+     async sendRpcCall(method, parameters) {

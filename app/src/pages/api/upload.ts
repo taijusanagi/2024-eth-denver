@@ -6,10 +6,12 @@ const path = require("path");
 const util = require("util");
 const writeFileAsync = util.promisify(fs.writeFile);
 
-const { EthStorage, EncodeOpBlobs } = require("ethstorage-sdk");
+// this code does not work in app  api route, so use page api route
+const { EthStorage } = require("ethstorage-sdk");
 
 type ResponseData = {
   data?: {
+    hash: string;
     directory: string;
     name: string;
   };
@@ -21,16 +23,32 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     res.status(400).json({ error: "No content provided" });
     return;
   }
-  const blob = EncodeOpBlobs(Buffer.from(req.body.content));
+  // const blob = EncodeOpBlobs(Buffer.from(req.body.content));
   // console.log(blob);
-  console.log("blob.length", blob.length);
+  // console.log("blob.length", blob.length);
   const privateKey = process.env.ETH_STORAGE_SIGNER_PRIVATE_KEY; // 0x71165Cf095cc1A0F1649F5E249B1b9d3CB7Bfd02
   const rpc = process.env.ETH_STORAGE_BLOB_UPLOAD_RPC;
   const deployedSepoliaBlobDirectory = "0x53E2e6379a5697f09C8Eedd4fE05Da4f9A977269";
   const ethStorage = new EthStorage(rpc, privateKey, deployedSepoliaBlobDirectory);
   // current eth storage implementation requires a 5 blank postfix
 
-  const content = `${req.body.content}     `;
+  if (!req.body.content) {
+    res.status(400).json({ error: "Content not provided" });
+    return;
+  }
+
+  if (typeof req.body.content != "string") {
+    res.status(400).json({ error: "Content type invalid" });
+    return;
+  }
+
+  if (req.body.content.length > 10000) {
+    res.status(400).json({ error: "Content too long" });
+    return;
+  }
+
+  // add 1000 blank prefix to fix bug in eth storage data fetch
+  const content = `${req.body.content}` + " ".repeat(1000);
   console.log("content.length", content.length);
   // console.log(content);
   // Create a temporary file path
@@ -40,20 +58,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
   const tempFilePath = path.join(tempDir, fileName);
   // Write the content to the temporary file
   await writeFileAsync(tempFilePath, content);
+  let data;
   try {
     // Upload the file using its path
     // TODO: error handling
-    ethStorage.upload(tempFilePath).then(() => {
-      fs.unlink(tempFilePath, (err: Error) => {
-        if (err) console.error("Error removing temporary file:", err);
-      });
-    });
-  } catch {
+    data = await ethStorage.upload(tempFilePath);
+  } finally {
+    // Clean up: Delete the temporary file after upload
     fs.unlink(tempFilePath, (err: Error) => {
       if (err) console.error("Error removing temporary file:", err);
     });
-  } finally {
-    // Clean up: Delete the temporary file after upload
-    res.status(200).json({ data: { directory: deployedSepoliaBlobDirectory, name: fileName } });
+    if (data) {
+      res.status(200).json({ data: { hash: data.hash, directory: deployedSepoliaBlobDirectory, name: fileName } });
+    } else {
+      res.status(500).json({ error: "Error uploading file" });
+    }
   }
 }
