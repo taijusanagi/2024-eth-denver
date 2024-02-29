@@ -146,12 +146,14 @@ export default function CreatorPage() {
               {!isConnected && <div />}
               {isConnected && (
                 <div
-                  className="cursor-pointer"
+                  className="flex items-center cursor-pointer"
                   onClick={() => {
                     window.location.reload();
                   }}
                 >
-                  <img src="./assets/logo.png" className="h-6 mx-auto mb-4" />
+                  <div>
+                    <img src="./assets/logo.png" className="h-6 mx-auto items-center" />
+                  </div>
                 </div>
               )}
               <ConnectButton />
