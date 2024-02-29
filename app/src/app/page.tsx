@@ -334,6 +334,7 @@ export default function CreatorPage() {
                             const tx = await contract.mintRoot(
                               ethstorageUloadResponse.directory,
                               ethers.utils.hexlify(ethers.utils.toUtf8Bytes(ethstorageUloadResponse.name)),
+                              policyId,
                               licenceAmount
                             );
                             console.log("done!!");

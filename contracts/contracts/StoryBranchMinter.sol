@@ -154,6 +154,9 @@ abstract contract StoryBranchMinter is FunctionsClient {
         );
     }
 
+    /*
+     * ETHStorage & Web3 URL implementation
+     */
     function read(uint256 contentId) public view returns (string memory) {
         bytes memory result = abi.encodePacked(
             "Story Root ID: ",

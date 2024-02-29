@@ -193,9 +193,6 @@ contract ContentNFT is Ownable, ERC721, ERC1155Holder {
     /*
      * ETHStorage & Web3 URL implementation
      */
-
-    // read function to get the main content from eth storage
-    // note: if the content is stored with blob, must use EThStorage node proxy in web3 url query
     function read(uint256 tokenId) public view returns (bytes memory) {
         RootContentLocation memory rootContentLocation = rootContentLocations[
             tokenId
@@ -208,37 +205,5 @@ contract ContentNFT is Ownable, ERC721, ERC1155Holder {
         } else {
             return content;
         }
-    }
-
-    // to define web3 url path
-    function resolveMode() external pure virtual returns (bytes32) {
-        return "manual";
-    }
-
-    // https://ethereum.stackexchange.com/questions/10932/how-to-convert-string-to-int
-    function stringToUint(string memory s) public pure returns (uint) {
-        bytes memory b = bytes(s);
-        uint result = 0;
-        for (uint256 i = 0; i < b.length; i++) {
-            uint256 c = uint256(uint8(b[i]));
-            if (c >= 48 && c <= 57) {
-                result = result * 10 + (c - 48);
-            }
-        }
-        return result;
-    }
-
-    // take token id from query, then return the content
-    // TODO: if we have time implement viewer design with html
-    fallback(bytes calldata pathinfo) external returns (bytes memory) {
-        if (pathinfo.length == 0) {
-            return bytes("");
-        } else if (pathinfo[0] != 0x2f) {
-            return bytes("incorrect path");
-        }
-        // TODO: error handling for invalid token id
-        uint256 tokenId = stringToUint(string(pathinfo[1:]));
-        bytes memory content = read(tokenId);
-        return content;
     }
 }
