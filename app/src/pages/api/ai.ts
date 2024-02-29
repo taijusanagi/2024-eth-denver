@@ -1,5 +1,4 @@
 import {
-  deployedSepoliaBlobDirectory,
   IERC5018Abi,
   contentNFTAbi,
   contentNFTAddress,
@@ -53,6 +52,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     model: "gpt-3.5-turbo",
     // seed: parseInt(branchContentId), // this is required to use chat gpi in functions
     seed: 0,
+    temperature: 0,
   });
   console.log(chatCompletion.choices[0].message.content);
   return res.json({ content: chatCompletion.choices[0].message.content });
