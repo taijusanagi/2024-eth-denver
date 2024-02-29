@@ -8,9 +8,9 @@ dataSources:
     name: Contract
     network: sepolia
     source:
-      address: "0xa538e5a046775b5713e8caa19e4729b5caa35efc"
+      address: "0xb2e46da6260c46427bacfc396272b585069181c6"
       abi: Contract
-      startBlock: 5388977
+      startBlock: 5388972
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
