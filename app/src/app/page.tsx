@@ -5,37 +5,52 @@ import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { MdArrowBackIos } from "react-icons/md";
 
 import { useAccount, useWriteContract } from "wagmi";
+import { useQuery, gql } from "@apollo/client";
+
 import { useEthersSigner } from "@/lib/ethers";
 import { ethers } from "ethers";
 import { contentNFTAbi, contentNFTAddress } from "@/lib/contracts";
 
 // content name is modified in backend like ${name}-1709156261098.txt
 // so this can be removed in frontend for better display
-const namePrefixLength = 18;
+const namePostfixLength = 18;
 const defaultPolicyId = 1;
 const defaultLicenseAmount = 100;
+
+const ROOT_QUERY = gql`
+  query {
+    rootContentMinteds {
+      tokenId
+      rootContentLocation_directory
+      rootContentLocation_name
+      creator
+    }
+  }
+`;
+
+const BRANCH_QUERY = gql`
+  query {
+    branchContentMinteds {
+      tokenId
+      creator
+      branchContentLocation_chainId
+      branchContentLocation_directory
+      branchContentLocation_index
+    }
+  }
+`;
 
 export default function CreatorPage() {
   const { address: connectedAddress } = useAccount();
   const signer = useEthersSigner();
-  const { writeContract, error, data } = useWriteContract();
+
+  const { loading, error, data } = useQuery(ROOT_QUERY);
 
   const [mode, setMode] = useState<
     "viewStoryRoots" | "createStoryRoot" | "viewStoryRoot" | "viewStoryBranch" | "createStoryBranch"
   >("viewStoryRoots");
   const [forkedFrom, setForkedFrom] = useState<number>();
-  const [stories, setStories] = useState([
-    "https://placehold.jp/500x500.png",
-    "https://placehold.jp/500x500.png",
-    "https://placehold.jp/500x500.png",
-    "https://placehold.jp/500x500.png",
-    "https://placehold.jp/500x500.png",
-    "https://placehold.jp/500x500.png",
-    "https://placehold.jp/500x500.png",
-    "https://placehold.jp/500x500.png",
-    "https://placehold.jp/500x500.png",
-    "https://placehold.jp/500x500.png",
-  ]);
+  const [stories, setStories] = useState<any[]>([]);
   const [selectedStoryRootIndex, setSelectedStoryRootIndex] = useState<number>();
   const [storyBranches, setStoryBranches] = useState([
     "https://placehold.jp/500x500.png",
@@ -61,18 +76,11 @@ export default function CreatorPage() {
   const storyBranchContentLengthInPage = 80;
 
   useEffect(() => {
-    if (!error) {
-      return;
-    }
-    console.log(error);
-  }, [error]);
-
-  useEffect(() => {
     if (!data) {
       return;
     }
-    console.log(data);
-  }, [data]);
+    setStories(data.rootContentMinteds);
+  }, [loading, data]);
 
   return (
     <main className="min-h-screen flex flex-col bg-gradient-to-br from-violet-300 to-pink-300 font-poppins">
@@ -84,7 +92,7 @@ export default function CreatorPage() {
       </header>
       <div className="flex flex-col justify-center items-center pt-4 pb-12 px-4">
         <div className="mb-4 flex justify-between items-center w-full max-w-4xl h-8">
-          <div className="cursor-pointer text-white hover:text-gray-200">
+          <div className="cursor-pointer text-white hover:text-gray-100">
             {mode == "createStoryRoot" && <MdArrowBackIos size={25} onClick={() => setMode("viewStoryRoots")} />}
             {mode == "viewStoryRoot" && <MdArrowBackIos size={25} onClick={() => setMode("viewStoryRoots")} />}
             {mode == "viewStoryBranch" && <MdArrowBackIos size={25} onClick={() => setMode("viewStoryRoot")} />}
@@ -108,17 +116,37 @@ export default function CreatorPage() {
                   </label>
                 </div>
               </div>
-              <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 sm:gap-4">
+              <div className="grid grid-cols-1 gap-2 break-all">
                 {stories.map((story, index) => (
                   <div
                     key={index}
-                    className="w-full h-30 bg-gray-200 rounded-lg shadow-md overflow-hidden cursor-pointer transform hover:scale-105 transition duration-100"
+                    className="w-full p-4 rounded-lg shadow-md overflow-hidden cursor-pointer hover:bg-gray-100"
                     onClick={() => {
                       setSelectedStoryRootIndex(index);
                       setMode("viewStoryRoot");
                     }}
                   >
-                    <img src={story} alt={`Story ${index + 1}`} className="w-full h-full object-cover" />
+                    <div className="flex flex-col">
+                      <p className="text-md font-semibold text-gray-600 mb-4">
+                        {ethers.utils
+                          .toUtf8String(story.rootContentLocation_name)
+                          .substring(
+                            0,
+                            ethers.utils.toUtf8String(story.rootContentLocation_name).length - namePostfixLength
+                          )}
+                      </p>
+                      <p className="text-xs text-gray-600 mb-1">Creator: {story.creator}</p>
+                      <h3 className="text-xs text-gray-600 mb-1">Story Protocol IP ID: {story.creator}</h3>
+                      <p className="text-xs text-gray-600">{`Content: web3://${
+                        story.rootContentLocation_directory
+                      }:11155111/${ethers.utils.toUtf8String(story.rootContentLocation_name)}`}</p>
+
+                      {/* <p>dd< p/> */}
+                      {/* <p className="text-sm text-gray-600">{story.fileDirectory}</p>
+                      <p className="text-sm text-gray-600">File Name: {story.fileName}</p>
+                      <p className="text-sm text-gray-600">Creator: {story.creator}</p>
+                      <p className="text-sm text-gray-600">IP ID: {story.ipId}</p> */}
+                    </div>
                   </div>
                 ))}
               </div>
@@ -262,7 +290,7 @@ export default function CreatorPage() {
                   {stories.map((story, index) => (
                     <div
                       key={index}
-                      className="w-full h-30 bg-gray-200 rounded-lg shadow-md overflow-hidden cursor-pointer transform hover:scale-105 transition duration-100"
+                      className="w-full h-30 bg-gray-200 rounded-md shadow-md overflow-hidden cursor-pointer transform hover:scale-105 transition duration-100"
                       onClick={() => {
                         setSelectedStoryBranchIndex(index);
                         setMode("viewStoryBranch");

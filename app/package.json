@@ -10,6 +10,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@apollo/client": "^3.9.5",
     "@rainbow-me/rainbowkit": "^2.0.1",
     "@story-protocol/core-sdk": "^0.0.1-beta-rc.8",
     "@story-protocol/react": "^0.0.1-beta.7",
@@ -17,6 +18,7 @@
     "axios": "^1.6.7",
     "ethers": "^5.7.2",
     "ethstorage-sdk": "1.1.2",
+    "graphql": "^16.8.1",
     "next": "14.1.0",
     "openai": "^4.28.0",
     "patch-package": "^8.0.0",
