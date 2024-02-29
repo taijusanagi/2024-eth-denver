@@ -21,6 +21,7 @@ const defaultPolicyId = 1;
 const defaultLicenseAmount = 100;
 
 const spriteDuration = 1500;
+const debugSpriteOff = true;
 
 const ROOT_QUERY = gql`
   query {
@@ -83,10 +84,14 @@ export default function CreatorPage() {
   const storyBranchContentLengthInPage = 80;
 
   useEffect(() => {
-    setSpriteMode("started");
-    setTimeout(() => {
+    if (debugSpriteOff) {
       setSpriteMode("ended");
-    }, spriteDuration);
+    } else {
+      setSpriteMode("started");
+      setTimeout(() => {
+        setSpriteMode("ended");
+      }, spriteDuration);
+    }
   }, []);
 
   useEffect(() => {
