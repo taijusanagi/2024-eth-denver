@@ -1,7 +1,8 @@
 export { contentNFTAbi } from "./abi/contentNFT";
 export { storyBranchMinterL1Abi } from "./abi/storyBranchMinterL1";
 
-export const contentNFTAddress = "0x5ef92367432b5ca5506c9705609a03d1df576425";
-export const storyBranchMinterL1Address = "0xf5e56fec0e38deb144ba54199909655446049f1a";
+export const contentNFTAddress = "0xd2dfd733ed213fdd87ad7456f02e2e1feac9b6ec";
+export const storyBranchMinterL1Address = "0x82f9c3d6fa691c68b1333d10b827be41d5dcce74";
 
-// path ../contracts/artifacts/contracts/ContentNFT.sol/ContentNFT.json
+export const sepoliaRPC = "https://rpc.sepolia.ethpandaops.io";
+export const sepoliaEthereumStorageNodeRPC = "http://65.108.236.27:9540";

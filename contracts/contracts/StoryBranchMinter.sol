@@ -36,7 +36,7 @@ abstract contract StoryBranchMinter is FunctionsClient {
         "const chainId = args[0];"
         "const branchContentId = args[1];"
         "const apiResponse = await Functions.makeHttpRequest({"
-        "url: `https://2024-eth-denver.vercel.app/openai`,"
+        "url: `https://2024-eth-denver.vercel.app/api/ai`,"
         "params: {"
         "chainId,"
         "branchContentId,"

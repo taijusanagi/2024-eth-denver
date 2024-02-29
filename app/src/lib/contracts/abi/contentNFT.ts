@@ -26,11 +26,6 @@ export const contentNFTAbi = [
         name: "licensingModule_",
         type: "address",
       },
-      {
-        internalType: "uint256",
-        name: "policyId_",
-        type: "uint256",
-      },
     ],
     stateMutability: "nonpayable",
     type: "constructor",
@@ -222,6 +217,12 @@ export const contentNFTAbi = [
       {
         indexed: true,
         internalType: "address",
+        name: "ipId",
+        type: "address",
+      },
+      {
+        indexed: true,
+        internalType: "address",
         name: "creator",
         type: "address",
       },
@@ -279,6 +280,12 @@ export const contentNFTAbi = [
         internalType: "uint256",
         name: "tokenId",
         type: "uint256",
+      },
+      {
+        indexed: true,
+        internalType: "address",
+        name: "ipId",
+        type: "address",
       },
       {
         indexed: true,
@@ -624,6 +631,11 @@ export const contentNFTAbi = [
         internalType: "bytes",
         name: "fileName",
         type: "bytes",
+      },
+      {
+        internalType: "uint256",
+        name: "policyId",
+        type: "uint256",
       },
       {
         internalType: "uint256",

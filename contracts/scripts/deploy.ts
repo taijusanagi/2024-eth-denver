@@ -10,7 +10,6 @@ async function main() {
     storyProtocolConfig.sepolia.ipAssetRegistry,
     storyProtocolConfig.sepolia.ipResolver,
     storyProtocolConfig.sepolia.licensingModule,
-    storyProtocolConfig.sepolia.policyId,
   ]);
   const storyBranchMinterL1 = await hre.viem.deployContract("StoryBranchMinterL1" as string, [
     chainlinkConfig.sepolia.functionsRouterAddress,

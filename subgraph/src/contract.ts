@@ -54,6 +54,7 @@ export function handleBranchContentMinted(
     event.transaction.hash.concatI32(event.logIndex.toI32())
   )
   entity.tokenId = event.params.tokenId
+  entity.ipId = event.params.ipId
   entity.creator = event.params.creator
   entity.branchContentLocation_chainId =
     event.params.branchContentLocation.chainId
@@ -89,6 +90,7 @@ export function handleRootContentMinted(event: RootContentMintedEvent): void {
     event.transaction.hash.concatI32(event.logIndex.toI32())
   )
   entity.tokenId = event.params.tokenId
+  entity.ipId = event.params.ipId
   entity.creator = event.params.creator
   entity.rootContentLocation_directory =
     event.params.rootContentLocation.directory

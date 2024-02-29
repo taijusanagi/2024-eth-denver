@@ -37,11 +37,13 @@ contract ContentNFT is Ownable, ERC721, ERC1155Holder {
     event branchMinterL1Set(address indexed branchMinterL1, bool status);
     event RootContentMinted(
         uint256 indexed tokenId,
+        address indexed ipId,
         address indexed creator,
         RootContentLocation rootContentLocation
     );
     event BranchContentMinted(
         uint256 indexed tokenId,
+        address indexed ipId,
         address indexed creator,
         BranchContentLocatioin branchContentLocation
     );
@@ -64,13 +66,11 @@ contract ContentNFT is Ownable, ERC721, ERC1155Holder {
         string memory symbol,
         address ipAssetRegistry_,
         address ipResolver_,
-        address licensingModule_,
-        uint256 policyId_
+        address licensingModule_
     ) Ownable(msg.sender) ERC721(name, symbol) {
         ipAssetRegistry = ipAssetRegistry_;
         ipResolver = ipResolver_;
         licensingModule = licensingModule_;
-        policyId = policyId_;
     }
 
     function setBranchMinterL1(
@@ -84,6 +84,7 @@ contract ContentNFT is Ownable, ERC721, ERC1155Holder {
     function mintRoot(
         address directory,
         bytes memory fileName,
+        uint256 policyId,
         uint256 licenseAmount
     ) public {
         uint256 tokenId = totalSupply;
@@ -130,7 +131,7 @@ contract ContentNFT is Ownable, ERC721, ERC1155Holder {
         // then give the nft back to creator
         this.transferFrom(address(this), msg.sender, tokenId);
 
-        emit RootContentMinted(tokenId, msg.sender, rootContentLocation);
+        emit RootContentMinted(tokenId, ipId, msg.sender, rootContentLocation);
     }
 
     function mintBranch(
@@ -179,7 +180,7 @@ contract ContentNFT is Ownable, ERC721, ERC1155Holder {
 
         this.transferFrom(address(this), creator, tokenId);
 
-        emit BranchContentMinted(tokenId, creator, branchContentLocation);
+        emit BranchContentMinted(tokenId, ipId, creator, branchContentLocation);
     }
 
     // ERC1155Holder is required to hold Story Protocol license

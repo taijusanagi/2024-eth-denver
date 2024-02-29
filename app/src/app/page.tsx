@@ -10,7 +10,7 @@ import { useQuery, gql } from "@apollo/client";
 import { useEthersSigner } from "@/lib/ethers";
 import { ethers } from "ethers";
 import { useIsConnected } from "@/hooks/useIsConnected";
-import { contentNFTAbi, contentNFTAddress } from "@/lib/contracts";
+import { contentNFTAbi, contentNFTAddress, sepoliaEthereumStorageNodeRPC } from "@/lib/contracts";
 import { mockRootNFTs } from "@/lib/mock";
 import { IERC5018Abi } from "@/lib/ethstorage";
 
@@ -100,7 +100,7 @@ export default function CreatorPage() {
     }
     const story = stories[selectedStoryRootIndex];
     // access eth storage node to handle blob data
-    const provider = new ethers.providers.JsonRpcProvider("http://65.108.236.27:9540");
+    const provider = new ethers.providers.JsonRpcProvider(sepoliaEthereumStorageNodeRPC);
     const contract = new ethers.Contract(story.rootContentLocation_directory, IERC5018Abi, provider);
     contract
       .read(story.rootContentLocation_name)
@@ -141,7 +141,6 @@ export default function CreatorPage() {
                   <img src="./assets/logo.png" className="h-6 mx-auto mb-4" />
                 </div>
               )}
-
               <ConnectButton />
             </div>
           </header>

@@ -59,6 +59,7 @@ export function createApprovalForAllEvent(
 
 export function createBranchContentMintedEvent(
   tokenId: BigInt,
+  ipId: Address,
   creator: Address,
   branchContentLocation: ethereum.Tuple
 ): BranchContentMinted {
@@ -71,6 +72,9 @@ export function createBranchContentMintedEvent(
       "tokenId",
       ethereum.Value.fromUnsignedBigInt(tokenId)
     )
+  )
+  branchContentMintedEvent.parameters.push(
+    new ethereum.EventParam("ipId", ethereum.Value.fromAddress(ipId))
   )
   branchContentMintedEvent.parameters.push(
     new ethereum.EventParam("creator", ethereum.Value.fromAddress(creator))
@@ -110,6 +114,7 @@ export function createOwnershipTransferredEvent(
 
 export function createRootContentMintedEvent(
   tokenId: BigInt,
+  ipId: Address,
   creator: Address,
   rootContentLocation: ethereum.Tuple
 ): RootContentMinted {
@@ -122,6 +127,9 @@ export function createRootContentMintedEvent(
       "tokenId",
       ethereum.Value.fromUnsignedBigInt(tokenId)
     )
+  )
+  rootContentMintedEvent.parameters.push(
+    new ethereum.EventParam("ipId", ethereum.Value.fromAddress(ipId))
   )
   rootContentMintedEvent.parameters.push(
     new ethereum.EventParam("creator", ethereum.Value.fromAddress(creator))

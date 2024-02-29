@@ -1,13 +1,13 @@
 {
-  "name": "content-nft-2",
+  "name": "storyteller",
   "license": "UNLICENSED",
   "scripts": {
     "codegen": "graph codegen",
     "build": "graph build",
-    "deploy": "graph deploy --node https://api.studio.thegraph.com/deploy/ content-nft-2",
-    "create-local": "graph create --node http://localhost:8020/ content-nft-2",
-    "remove-local": "graph remove --node http://localhost:8020/ content-nft-2",
-    "deploy-local": "graph deploy --node http://localhost:8020/ --ipfs http://localhost:5001 content-nft-2",
+    "deploy": "graph deploy --node https://api.studio.thegraph.com/deploy/ storyteller",
+    "create-local": "graph create --node http://localhost:8020/ storyteller",
+    "remove-local": "graph remove --node http://localhost:8020/ storyteller",
+    "deploy-local": "graph deploy --node http://localhost:8020/ --ipfs http://localhost:5001 storyteller",
     "test": "graph test"
   },
   "dependencies": {

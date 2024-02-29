@@ -8,9 +8,9 @@ dataSources:
     name: Contract
     network: sepolia
     source:
-      address: "0x5ef92367432b5ca5506c9705609a03d1df576425"
+      address: "0xd2dfd733ed213fdd87ad7456f02e2e1feac9b6ec"
       abi: Contract
-      startBlock: 5378593
+      startBlock: 5386630
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
@@ -31,11 +31,11 @@ dataSources:
           handler: handleApproval
         - event: ApprovalForAll(indexed address,indexed address,bool)
           handler: handleApprovalForAll
-        - event: BranchContentMinted(indexed uint256,indexed address,(uint256,address,uint256))
+        - event: BranchContentMinted(indexed uint256,indexed address,indexed address,(uint256,address,uint256))
           handler: handleBranchContentMinted
         - event: OwnershipTransferred(indexed address,indexed address)
           handler: handleOwnershipTransferred
-        - event: RootContentMinted(indexed uint256,indexed address,(address,bytes))
+        - event: RootContentMinted(indexed uint256,indexed address,indexed address,(address,bytes))
           handler: handleRootContentMinted
         - event: Transfer(indexed address,indexed address,indexed uint256)
           handler: handleTransfer

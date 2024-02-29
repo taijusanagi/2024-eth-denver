@@ -21,6 +21,7 @@ type ApprovalForAll @entity(immutable: true) {
 type BranchContentMinted @entity(immutable: true) {
   id: Bytes!
   tokenId: BigInt! # uint256
+  ipId: Bytes! # address
   creator: Bytes! # address
   branchContentLocation_chainId: BigInt! # uint256
   branchContentLocation_directory: Bytes! # address
@@ -42,6 +43,7 @@ type OwnershipTransferred @entity(immutable: true) {
 type RootContentMinted @entity(immutable: true) {
   id: Bytes!
   tokenId: BigInt! # uint256
+  ipId: Bytes! # address
   creator: Bytes! # address
   rootContentLocation_directory: Bytes! # address
   rootContentLocation_name: Bytes! # bytes
