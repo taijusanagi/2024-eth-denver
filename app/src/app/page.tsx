@@ -292,13 +292,16 @@ export default function CreatorPage() {
                       className="block text-sm font-medium text-blue-400 underline hover:text-blue-600 cursor-pointer"
                       onClick={() => {
                         setMode("createStoryBranch");
+                        window.scrollTo({
+                          top: document.body.scrollHeight,
+                          behavior: "smooth",
+                        });
                       }}
                     >
                       Create Branch
                     </label>
                   </div>
                 </div>
-
                 <div className="w-full p-4 rounded-lg shadow-md overflow-hidden">
                   <div className="flex flex-col">
                     <p className="text-md font-semibold text-gray-600 mb-2">
@@ -371,11 +374,29 @@ export default function CreatorPage() {
               </div>
             </div>
           )}
-          {mode == "createStoryBranch" && (
+          {mode == "createStoryBranch" && selectedStoryRootIndex != undefined && (
             <div>
               <h2 className="text-lg font-semibold text-gray-800 mb-4">Create Story Branch</h2>
               <div className="w-full p-4 rounded-lg shadow-md overflow-hidden mb-8">
                 <div className="flex flex-col">
+                  <p className="text-md font-semibold text-gray-600 mb-2">
+                    {ethers.utils
+                      .toUtf8String(stories[selectedStoryRootIndex].rootContentLocation_name)
+                      .substring(
+                        0,
+                        ethers.utils.toUtf8String(stories[selectedStoryRootIndex].rootContentLocation_name).length -
+                          namePostfixLength
+                      )}
+                  </p>
+                  <p className="text-xs text-gray-600 mb-1">Creator: {stories[selectedStoryRootIndex].creator}</p>
+                  <h3 className="text-xs text-gray-600 mb-1">
+                    Story Protocol IP ID: {stories[selectedStoryRootIndex].creator}
+                  </h3>
+                  <p className="text-xs text-gray-600 mb-4">{`Content: web3://${
+                    stories[selectedStoryRootIndex].rootContentLocation_directory
+                  }:11155111/${ethers.utils.toUtf8String(
+                    stories[selectedStoryRootIndex].rootContentLocation_name
+                  )}`}</p>
                   <p className="text-sm text-gray-600">
                     {storyRootContent != "" ? storyRootContent : "Loading blob data from Ethereum Storage Node..."}
                   </p>
