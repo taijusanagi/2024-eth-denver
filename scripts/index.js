@@ -147,7 +147,7 @@ async function readFromBlobDirectory() {
   const hex = ethers.utils.hexlify(data);
   // console.log(hex);
   const str = ethers.utils.toUtf8String(data);
-  console.log("result", str);
+  console.log("result", str.replace(/[\u0000\u0020]+$/, ""));
 }
 
 async function readFromNormalDirectory() {
@@ -164,5 +164,5 @@ async function readFromNormalDirectory() {
 // setupNormalDirectory();
 // uploadToBlobDirectory();
 // uploadToNormalDirectory();
-readFromBlobDirectory();
+// readFromBlobDirectory();
 // readFromNormalDirectory();
