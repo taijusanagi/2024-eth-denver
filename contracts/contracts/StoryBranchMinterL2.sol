@@ -10,13 +10,15 @@ contract StoryBranchMinterL2 is StoryBranchMinter {
         address functionRouter,
         uint64 functionSubscriptionId,
         uint32 functionGasLimit,
-        bytes32 functionDonId
+        bytes32 functionDonId,
+        string memory interactScript
     )
         StoryBranchMinter(
             functionRouter,
             functionSubscriptionId,
             functionGasLimit,
-            functionDonId
+            functionDonId,
+            interactScript
         )
     {}
 

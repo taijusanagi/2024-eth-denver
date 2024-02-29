@@ -1,5 +1,5 @@
 import hre from "hardhat";
-import { chainlinkConfig } from "../lib/chainlink";
+import { chainlinkConfig, script } from "../lib/chainlink";
 import { nftName, nftSymbol } from "../lib/constants";
 import { storyProtocolConfig } from "../lib/story-protocol";
 
@@ -17,6 +17,7 @@ async function main() {
     chainlinkConfig.sepolia.functionsSubscriptionId,
     chainlinkConfig.sepolia.functionsGasLimit,
     chainlinkConfig.sepolia.functionsDonId,
+    script,
     contentNFT.address,
   ]);
   console.log(`ContentNFT deployed to ${contentNFT.address}`);

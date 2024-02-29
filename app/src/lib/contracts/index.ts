@@ -9,7 +9,7 @@ export const sepoliaEthereumStorageNodeRPC = "http://65.108.236.27:9540";
 
 export const contentNFTAddress = "0xb2e46da6260c46427bacfc396272b585069181c6";
 export const storyBranchMinterL1Address = "0xa538e5a046775b5713e8caa19e4729b5caa35efc";
-export const graphQLUri = "https://api.studio.thegraph.com/query/66919/storyteller/v0.0.7";
+export const graphQLUri = "https://api.studio.thegraph.com/query/66919/storyteller/v0.0.8";
 
 // abi path
 // ./contracts/artifacts/contracts/ContentNFT.sol/ContentNFT.json

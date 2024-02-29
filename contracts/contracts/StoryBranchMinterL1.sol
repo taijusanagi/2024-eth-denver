@@ -14,13 +14,15 @@ contract StoryBranchMinterL1 is StoryBranchMinter {
         uint64 functionSubscriptionId,
         uint32 functionGasLimit,
         bytes32 functionDonId,
+        string memory interactScript,
         ContentNFT contentNFT_
     )
         StoryBranchMinter(
             functionRouter,
             functionSubscriptionId,
             functionGasLimit,
-            functionDonId
+            functionDonId,
+            interactScript
         )
     {
         contentNFT = contentNFT_;

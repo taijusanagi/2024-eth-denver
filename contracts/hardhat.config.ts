@@ -1,5 +1,6 @@
 import { HardhatUserConfig, task } from "hardhat/config";
 import "@nomicfoundation/hardhat-toolbox-viem";
+import { script } from "./lib/chainlink";
 // import "@nomicfoundation/hardhat-foundry";
 
 const accounts = process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [];
@@ -26,22 +27,6 @@ task("debugChainlinkFunctionsSendRequest", "start story")
     const address = taskArgs.address;
     const branchContentId = taskArgs.branchContentId;
     const contract = await hre.viem.getContractAt("StoryBranchMinterL1Exposure", address);
-    const script = `
-      const chainId = args[0];
-      const branchContentId = args[1];
-      const apiResponse = await Functions.makeHttpRequest({
-      url: 'https://2024-eth-denver.vercel.app/api/ai',
-      params: {
-      chainId,
-      branchContentId,
-      }
-      });
-      if (apiResponse.error) {
-        return Functions.encodeString("I'm sorry, I don't understand. Could you explain that to me, please?");
-      }
-      const { data } = apiResponse;
-      return Functions.encodeString(data.content);
-    `;
     console.log(script);
     const tx = await contract.write.debugChainlinkFunctionsSendRequest([branchContentId, script]);
     console.log(tx);

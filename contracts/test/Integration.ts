@@ -4,7 +4,7 @@ import { privateKeyToAccount } from "viem/accounts";
 import { expect } from "chai";
 import { ethers } from "ethers";
 
-import { chainlinkConfig, functionRouterABI } from "../lib/chainlink";
+import { chainlinkConfig, functionRouterABI, script } from "../lib/chainlink";
 import { storyProtocolConfig } from "../lib/story-protocol";
 
 import { nftName, nftSymbol, nullBytes32, nullAddress } from "../lib/constants";
@@ -32,6 +32,7 @@ describe("Integration", function () {
       0,
       0,
       nullBytes32,
+      script,
       contentNFT.address,
     ]);
     await contentNFT.write.setBranchMinterL1([storyBranchMinterL1.address, true]);
@@ -84,6 +85,7 @@ describe("Integration", function () {
       0,
       0,
       nullBytes32,
+      script,
       contentNFT.address,
     ]);
     await contentNFT.write.setBranchMinterL1([storyBranchMinterL1.address, true]);
@@ -132,6 +134,7 @@ describe("Integration", function () {
       chainlinkConfig.sepolia.functionsSubscriptionId,
       chainlinkConfig.sepolia.functionsGasLimit,
       chainlinkConfig.sepolia.functionsDonId,
+      script,
       contentNFT.address,
     ]);
     await contentNFT.write.setBranchMinterL1([storyBranchMinterL1.address, true]);

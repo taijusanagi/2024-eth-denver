@@ -13,18 +13,20 @@ contract StoryBranchMinterL1Exposure is StoryBranchMinterL1 {
     using Strings for uint256;
 
     constructor(
-        address _functionRouter,
-        uint64 _functionSubscriptionId,
-        uint32 _functionGasLimit,
-        bytes32 _functionDonId,
-        ContentNFT _contentNFT
+        address functionRouter,
+        uint64 functionSubscriptionId,
+        uint32 functionGasLimit,
+        bytes32 functionDonId,
+        string memory interactScript,
+        ContentNFT contentNFT
     )
         StoryBranchMinterL1(
-            _functionRouter,
-            _functionSubscriptionId,
-            _functionGasLimit,
-            _functionDonId,
-            _contentNFT
+            functionRouter,
+            functionSubscriptionId,
+            functionGasLimit,
+            functionDonId,
+            interactScript,
+            contentNFT
         )
     {}
 

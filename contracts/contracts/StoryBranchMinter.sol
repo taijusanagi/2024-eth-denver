@@ -33,32 +33,20 @@ abstract contract StoryBranchMinter is FunctionsClient {
     uint64 public subscriptionId;
     uint32 public functionGasLimit;
     bytes32 public functionDonId;
-    string interactScript =
-        "const chainId = args[0];"
-        "const branchContentId = args[1];"
-        "const apiResponse = await Functions.makeHttpRequest({"
-        "url: `https://2024-eth-denver.vercel.app/api/ai`,"
-        "params: {"
-        "chainId,"
-        "branchContentId,"
-        "}"
-        "});"
-        "if (apiResponse.error) {"
-        "return Functions.encodeString('I'm sorry, I don't understand. Could you explain that to me, please?');" // Chainlink functions sometimes fail to compute, so we prepare message to let user try again
-        "}"
-        "const { data } = apiResponse;"
-        "return Functions.encodeString(data.content);";
+    string interactScript;
     uint256 public branchContentIndex;
 
     constructor(
         address functionRouter,
         uint64 functionSubscriptionId,
         uint32 functionGasLimit_,
-        bytes32 functionDonId_
+        bytes32 functionDonId_,
+        string memory interactScript_
     ) FunctionsClient(functionRouter) {
         subscriptionId = functionSubscriptionId;
         functionGasLimit = functionGasLimit_;
         functionDonId = functionDonId_;
+        interactScript = interactScript_;
     }
 
     function _startBranchContent(
