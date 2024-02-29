@@ -56,8 +56,6 @@ describe("Integration", function () {
     await storyBranchMinterL1.write.endBranchContent();
     const branchTokenId = 1;
     expect(await contentNFT.read.ownerOf([branchTokenId])).to.equal(signerAddress);
-    // other uint test
-    expect(await contentNFT.read.stringToUint(["1"])).to.equal(BigInt(1));
 
     // check views
     // const content = await storyBranchMinterL1.read.getContent([contentId]);

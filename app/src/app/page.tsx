@@ -10,7 +10,13 @@ import { useQuery, gql } from "@apollo/client";
 import { useEthersSigner } from "@/lib/ethers";
 import { ethers } from "ethers";
 import { useIsConnected } from "@/hooks/useIsConnected";
-import { contentNFTAbi, contentNFTAddress, sepoliaEthereumStorageNodeRPC } from "@/lib/contracts";
+import {
+  contentNFTAbi,
+  contentNFTAddress,
+  sepoliaEthereumStorageNodeRPC,
+  storyBranchMinterL1Abi,
+  storyBranchMinterL1Address,
+} from "@/lib/contracts";
 import { mockRootNFTs } from "@/lib/mock";
 import { IERC5018Abi } from "@/lib/ethstorage";
 
@@ -25,9 +31,10 @@ const ROOT_QUERY = gql`
   query {
     rootContentMinteds(orderBy: tokenId, orderDirection: desc) {
       tokenId
+      ipId
+      creator
       rootContentLocation_directory
       rootContentLocation_name
-      creator
     }
   }
 `;
@@ -36,6 +43,7 @@ const BRANCH_QUERY = gql`
   query {
     branchContentMinteds(orderBy: tokenId, orderDirection: desc) {
       tokenId
+      ipId
       creator
       branchContentLocation_chainId
       branchContentLocation_directory
@@ -83,7 +91,6 @@ export default function CreatorPage() {
 
   useEffect(() => {
     if (process.env.NEXT_PUBLIC_DISABLE_SPRITE == "true") {
-      console.log("disable");
       setSpriteMode("ended");
     } else {
       setSpriteMode("started");
@@ -102,12 +109,18 @@ export default function CreatorPage() {
     // access eth storage node to handle blob data
     const provider = new ethers.providers.JsonRpcProvider(sepoliaEthereumStorageNodeRPC);
     const contract = new ethers.Contract(story.rootContentLocation_directory, IERC5018Abi, provider);
+
+    console.log(story.rootContentLocation_directory);
+    console.log(story.rootContentLocation_name);
+
     contract
       .read(story.rootContentLocation_name)
       .then(([content]: [string]) => {
+        console.log("result", content);
         setStoryRootContent(ethers.utils.toUtf8String(content).replace(/[\u0000\u0020]+$/, ""));
       })
-      .catch(() => {
+      .catch((e: Error) => {
+        console.log(e.message);
         setStoryRootContent("Failed to load blob data from Ethereum Storage Node, please try again later.");
       });
   }, [stories, selectedStoryRootIndex]);
@@ -217,7 +230,7 @@ export default function CreatorPage() {
                                   )}
                               </p>
                               <p className="text-xs text-gray-600 mb-1">Creator: {story.creator}</p>
-                              <h3 className="text-xs text-gray-600 mb-1">Story Protocol IP ID: {story.creator}</h3>
+                              <h3 className="text-xs text-gray-600 mb-1">Story Protocol IP ID: {story.ipId}</h3>
                               <p className="text-xs text-gray-600">{`Content: web3://${
                                 story.rootContentLocation_directory
                               }:11155111/${ethers.utils.toUtf8String(story.rootContentLocation_name)}`}</p>
@@ -292,10 +305,6 @@ export default function CreatorPage() {
                             creatingStoryRootContent.length > 10000
                           }
                           onClick={async () => {
-                            if (!signer) {
-                              return;
-                            }
-
                             console.log("start create story root...");
                             const url = `${process.env.NEXT_PUBLIC_APP_URL}/api/upload`;
                             const options = {
@@ -381,7 +390,7 @@ export default function CreatorPage() {
                               Creator: {stories[selectedStoryRootIndex].creator}
                             </p>
                             <h3 className="text-xs text-gray-600 mb-1">
-                              Story Protocol IP ID: {stories[selectedStoryRootIndex].creator}
+                              Story Protocol IP ID: {stories[selectedStoryRootIndex].ipId}
                             </h3>
                             <p className="text-xs text-gray-600 mb-4">{`Content: web3://${
                               stories[selectedStoryRootIndex].rootContentLocation_directory
@@ -449,7 +458,7 @@ export default function CreatorPage() {
                         <h2 className="text-xl md:text-4xl font-semibold text-gray-800">Create Story Branch</h2>
                       </div>
                       {/* <h2 className="text-lg font-semibold text-gray-800 mb-4">Create Story Branch</h2> */}
-                      <div className="w-full p-4 rounded-md shadow-md overflow-hidden mb-8">
+                      <div className="w-full p-4 rounded-md shadow-md overflow-hidden mb-4">
                         <div className="flex flex-col">
                           <p className="text-md font-semibold text-gray-600 mb-2">
                             {ethers.utils
@@ -495,6 +504,16 @@ export default function CreatorPage() {
                         <button
                           className="w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-md font-bold text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none disabled:bg-indigo-300 disabled:cursor-not-allowed disabled:opacity-50"
                           disabled={!storyRootContent}
+                          onClick={async () => {
+                            const tokenId = stories[selectedStoryRootIndex].tokenId;
+                            const contract = new ethers.Contract(
+                              storyBranchMinterL1Address,
+                              storyBranchMinterL1Abi,
+                              signer
+                            );
+                            const tx = await contract.startBranchContent(tokenId);
+                            console.log(tx);
+                          }}
                         >
                           Start
                         </button>

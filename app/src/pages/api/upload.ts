@@ -1,3 +1,4 @@
+import { deployedSepoliaBlobDirectory } from "@/lib/contracts";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 const fs = require("fs");
@@ -29,7 +30,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
   // console.log("blob.length", blob.length);
   const privateKey = process.env.ETH_STORAGE_SIGNER_PRIVATE_KEY; // 0x71165Cf095cc1A0F1649F5E249B1b9d3CB7Bfd02
   const rpc = process.env.ETH_STORAGE_BLOB_UPLOAD_RPC;
-  const deployedSepoliaBlobDirectory = "0x53E2e6379a5697f09C8Eedd4fE05Da4f9A977269";
+
   const ethStorage = new EthStorage(rpc, privateKey, deployedSepoliaBlobDirectory);
   // current eth storage implementation requires a 5 blank postfix
 

@@ -1,4 +1,6 @@
 import {
+  deployedSepoliaBlobDirectory,
+  IERC5018Abi,
   contentNFTAbi,
   contentNFTAddress,
   sepoliaEthereumStorageNodeRPC,
@@ -17,18 +19,14 @@ const openai = new OpenAI({
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<any>) {
   const { chainId, branchContentId } = req.query;
-  if (!chainId || !branchContentId) {
-    return Response.json({ error: "Chain ID or branchContentId not provided" }, { status: 400 });
+  if (!chainId || !branchContentId || typeof chainId != "string" || typeof branchContentId != "string") {
+    return res.status(400).json({ error: "Chain ID or branchContentId not provided" });
   }
   console.log(chainId, branchContentId);
   const sepoliaProvider = new ethers.providers.JsonRpcProvider(sepoliaRPC);
   const sepoliaEthereumStorageProvider = new ethers.providers.JsonRpcProvider(sepoliaEthereumStorageNodeRPC);
   const nftContentContract = new ethers.Contract(contentNFTAddress, contentNFTAbi, sepoliaProvider);
-  const nftContentContractOnEtherStorageNode = new ethers.Contract(
-    contentNFTAddress,
-    contentNFTAbi,
-    sepoliaEthereumStorageProvider
-  );
+
   let storyBranchMinterProvider;
   let storyBranchMinterAddress;
   let storyBranchMinterAbi;
@@ -44,12 +42,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     storyBranchMinterAbi,
     storyBranchMinterProvider
   );
-  const [rootTokenId] = await storyBranchMinterContract.getContent(0);
+
+  const [rootTokenId] = await storyBranchMinterContract.getContent(branchContentId);
   console.log(rootTokenId);
-  const content = await nftContentContractOnEtherStorageNode.getContent(rootTokenId);
-  console.log(content);
+  const [directory, name] = await nftContentContract.rootContentLocations(rootTokenId);
+  const blobRegistryOnEtherStorageNode = new ethers.Contract(directory, IERC5018Abi, sepoliaEthereumStorageProvider);
+  const [content] = await blobRegistryOnEtherStorageNode.read(name);
+  ethers.utils.toUtf8String(content);
+  console.log(directory, name);
+  // const content = "ok";
   const chatCompletion = await openai.chat.completions.create({
-    messages: [{ role: "user", content }],
+    messages: [{ role: "user", content: ethers.utils.toUtf8String(content) }],
     model: "gpt-3.5-turbo",
   });
   console.log(chatCompletion);
