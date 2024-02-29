@@ -47,8 +47,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
   const blobRegistryOnEtherStorageNode = new ethers.Contract(directory, IERC5018Abi, sepoliaEthereumStorageProvider);
   const [content] = await blobRegistryOnEtherStorageNode.read(name);
   const chatCompletion = await openai.chat.completions.create({
-    // messages: [{ role: "user", content: ethers.utils.toUtf8String(content) }],
-    messages: [{ role: "user", content }],
+    messages: [{ role: "user", content: ethers.utils.toUtf8String(content) }],
+    // messages: [{ role: "user", content }],
     model: "gpt-3.5-turbo",
     seed: parseInt(branchContentId), // this is required to use chat gpi in functions
   });
