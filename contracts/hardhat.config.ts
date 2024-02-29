@@ -37,7 +37,7 @@ task("debugChainlinkFunctionsSendRequest", "start story")
       }
       });
       if (apiResponse.error) {
-      throw Error('Request failed');
+        return Functions.encodeString("I'm sorry, I don't understand. Could you explain that to me, please?");
       }
       const { data } = apiResponse;
       return Functions.encodeString(data.content);

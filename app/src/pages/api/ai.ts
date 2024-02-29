@@ -50,8 +50,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     messages: [{ role: "user", content: ethers.utils.toUtf8String(content) }],
     // messages: [{ role: "user", content }],
     model: "gpt-3.5-turbo",
-    // seed: parseInt(branchContentId), // this is required to use chat gpi in functions
-    seed: 0,
+    seed: parseInt(branchContentId), // this is required to use chat gpi in functions
+    // seed: 0,
   });
   console.log(chatCompletion.choices[0].message.content);
   return res.json({ content: chatCompletion.choices[0].message.content });
