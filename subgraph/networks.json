@@ -1,8 +1,8 @@
 {
   "sepolia": {
     "Contract": {
-      "address": "0x84759a670722fc5666f2baff12d5db1542e47a84",
-      "startBlock": 5388479
+      "address": "0x4dbf1695bf423247dfeaba83af146eaf04865e8f",
+      "startBlock": 5388569
     }
   }
 }

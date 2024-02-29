@@ -111,7 +111,7 @@ describe("Integration", function () {
   });
 
   // chainlink integration needs more setup, so we will skip it default
-  it.skip("Should work forked chainlink functions", async function () {
+  it("Should work forked chainlink functions", async function () {
     const [signer] = await hre.viem.getWalletClients();
     const [signerAddress] = await signer.getAddresses();
     const mockFileDirectory = await hre.viem.deployContract("MockFileDirectory" as string, []);
