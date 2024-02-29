@@ -19,9 +19,7 @@ import { IERC5018Abi } from "@/lib/ethstorage";
 const namePostfixLength = 18;
 const defaultPolicyId = 1;
 const defaultLicenseAmount = 100;
-
 const spriteDuration = 1500;
-const debugSpriteOff = true;
 
 const ROOT_QUERY = gql`
   query {
@@ -84,7 +82,8 @@ export default function CreatorPage() {
   const storyBranchContentLengthInPage = 80;
 
   useEffect(() => {
-    if (debugSpriteOff) {
+    if (process.env.NEXT_PUBLIC_DISABLE_SPRITE == "true") {
+      console.log("disable");
       setSpriteMode("ended");
     } else {
       setSpriteMode("started");
@@ -131,14 +130,18 @@ export default function CreatorPage() {
         <>
           <header className="w-full py-4 bg-transparent backdrop-blur-md">
             <div className="flex justify-between items-center px-4">
-              <h1
-                className="text-xl font-semibold text-white text-gray-800 cursor-pointer"
-                onClick={() => {
-                  window.location.reload();
-                }}
-              >
-                Logo
-              </h1>
+              {!isConnected && <div />}
+              {isConnected && (
+                <div
+                  className="cursor-pointer"
+                  onClick={() => {
+                    window.location.reload();
+                  }}
+                >
+                  <img src="./assets/logo.png" className="h-6 mx-auto mb-4" />
+                </div>
+              )}
+
               <ConnectButton />
             </div>
           </header>
@@ -146,14 +149,13 @@ export default function CreatorPage() {
             {!isConnected && (
               <div className="fixed inset-20 flex justify-center items-center">
                 <div className="text-center max-w-2xl">
-                  <p className="text-white text-6xl mb-12">Logo</p>
-                  <p className="text-white text-3xl mb-2">Service Name Here</p>
-                  <p className="text-white text-md mb-8">
+                  <img src="./assets/hero.png" className="h-60 mx-auto mb-4" />
+                  <p className="text-white font-medium text-md mb-8">
                     2 lines of explanation2 lines of explanation2 lines of explanation2 lines of explanation3 lines of
                     explanation2 lines of explanation2 lines of explanation2
                   </p>
                   <button
-                    className="w-40 py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none disabled:bg-indigo-300 disabled:cursor-not-allowed disabled:opacity-50"
+                    className="w-40 py-2 px-4 border border-transparent rounded-md shadow-sm text-md font-bold text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none disabled:bg-indigo-300 disabled:cursor-not-allowed disabled:opacity-50"
                     onClick={() => {
                       if (!openConnectModal) {
                         return;
@@ -180,28 +182,27 @@ export default function CreatorPage() {
                     )}
                   </div>
                 </div>
-                <div className="bg-white backdrop-blur-lg py-8 px-6 rounded-lg shadow-2xl w-full max-w-4xl mx-auto">
+                <div className="bg-white backdrop-blur-lg py-8 px-6 rounded-md shadow-2xl w-full max-w-4xl mx-auto">
                   {mode == "viewStoryRoots" && (
                     <div>
-                      <h2 className="text-lg font-semibold text-gray-800 mb-4">View Story Roots</h2>
-                      <div className="flex justify-between">
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Story Roots</label>
-                        <div className="flex">
-                          <label
-                            className="block text-sm font-medium text-blue-400 underline hover:text-blue-600 cursor-pointer"
+                      <div className="flex justify-between mb-4">
+                        <h2 className="text-xl md:text-4xl font-semibold text-gray-800">View Story Roots</h2>
+                        <div>
+                          <button
+                            className="block text-sm px-3 md:px-4 py-1 md:py-2 font-bold text-indigo-600 rounded-md hover:opacity-75 outline"
                             onClick={() => {
                               setMode("createStoryRoot");
                             }}
                           >
                             Create Root
-                          </label>
+                          </button>
                         </div>
                       </div>
                       <div className="grid grid-cols-1 gap-2 break-all">
                         {stories.map((story, index) => (
                           <div
                             key={index}
-                            className="w-full p-4 rounded-lg shadow-md overflow-hidden cursor-pointer hover:bg-gray-100"
+                            className="w-full p-4 rounded-md shadow-md overflow-hidden cursor-pointer hover:bg-gray-100"
                             onClick={() => {
                               setSelectedStoryRootIndex(index);
                               setMode("viewStoryRoot");
@@ -229,7 +230,9 @@ export default function CreatorPage() {
                   )}
                   {mode == "createStoryRoot" && (
                     <div>
-                      <h2 className="text-lg font-semibold text-gray-800 mb-4">Create Story Root</h2>
+                      <div className="mb-4">
+                        <h2 className="text-xl md:text-4xl font-semibold text-gray-800">Create Story Root</h2>
+                      </div>
                       <div className="mb-4">
                         <div className="flex justify-between mb-2">
                           <label className="block text-sm font-medium text-gray-700">Content Name</label>
@@ -282,7 +285,7 @@ export default function CreatorPage() {
                       </div>
                       <div>
                         <button
-                          className="w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none disabled:bg-indigo-300 disabled:cursor-not-allowed disabled:opacity-50"
+                          className="w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-md font-bold text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none disabled:bg-indigo-300 disabled:cursor-not-allowed disabled:opacity-50"
                           disabled={
                             !creatingStoryRootName ||
                             creatingStoryRootName.length > 100 ||
@@ -345,27 +348,25 @@ export default function CreatorPage() {
                   )}
                   {mode == "viewStoryRoot" && selectedStoryRootIndex != undefined && (
                     <div>
-                      <h2 className="text-lg font-semibold text-gray-800 mb-4">View Story Root</h2>
-
-                      <div className="mb-8">
-                        <div className="flex justify-between">
-                          <label className="block text-sm font-medium text-gray-700 mb-2">Story Root</label>
-                          <div className="flex">
-                            <label
-                              className="block text-sm font-medium text-blue-400 underline hover:text-blue-600 cursor-pointer"
-                              onClick={() => {
-                                setMode("createStoryBranch");
-                                window.scrollTo({
-                                  top: document.body.scrollHeight,
-                                  behavior: "smooth",
-                                });
-                              }}
-                            >
-                              Create Branch
-                            </label>
-                          </div>
+                      <div className="flex justify-between mb-4">
+                        <h2 className="text-xl md:text-4xl font-semibold text-gray-800">View Story Root</h2>
+                        <div>
+                          <button
+                            className="block text-sm px-3 md:px-4 py-1 md:py-2 font-bold text-indigo-600 rounded-md hover:opacity-75 outline"
+                            onClick={() => {
+                              setMode("createStoryBranch");
+                              window.scrollTo({
+                                top: document.body.scrollHeight,
+                                behavior: "smooth",
+                              });
+                            }}
+                          >
+                            Create Branch
+                          </button>
                         </div>
-                        <div className="w-full p-4 rounded-lg shadow-md overflow-hidden">
+                      </div>
+                      <div className="mb-8">
+                        <div className="w-full p-4 rounded-md shadow-md overflow-hidden">
                           <div className="flex flex-col">
                             <p className="text-md font-semibold text-gray-600 mb-2">
                               {ethers.utils
@@ -395,14 +396,13 @@ export default function CreatorPage() {
                           </div>
                         </div>
                       </div>
-
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">Story Branches</label>
                         <div className="grid grid-cols-1 gap-2 break-all">
                           {storyBranches.map((storyBranche, index) => (
                             <div
                               key={index}
-                              className="w-full p-4 rounded-lg shadow-md overflow-hidden cursor-pointer hover:bg-gray-100"
+                              className="w-full p-4 rounded-md shadow-md overflow-hidden cursor-pointer hover:bg-gray-100"
                               onClick={() => {
                                 setSelectedStoryRootIndex(index);
                                 setMode("viewStoryRoot");
@@ -429,7 +429,9 @@ export default function CreatorPage() {
                   )}
                   {mode == "viewStoryBranch" && selectedStoryRootIndex != undefined && (
                     <div>
-                      <h2 className="text-lg font-semibold text-gray-800 mb-4">View Story Branch</h2>
+                      <div className="mb-4">
+                        <h2 className="text-lg font-semibold text-gray-800">View Story Branch</h2>
+                      </div>
                       <div className="mb-4">
                         <label className="block text-sm font-medium text-gray-700">Story Root</label>
                         <div className="w-full h-20 mt-2">
@@ -443,8 +445,11 @@ export default function CreatorPage() {
                   )}
                   {mode == "createStoryBranch" && selectedStoryRootIndex != undefined && (
                     <div>
-                      <h2 className="text-lg font-semibold text-gray-800 mb-4">Create Story Branch</h2>
-                      <div className="w-full p-4 rounded-lg shadow-md overflow-hidden mb-8">
+                      <div className="mb-4">
+                        <h2 className="text-xl md:text-4xl font-semibold text-gray-800">Create Story Branch</h2>
+                      </div>
+                      {/* <h2 className="text-lg font-semibold text-gray-800 mb-4">Create Story Branch</h2> */}
+                      <div className="w-full p-4 rounded-md shadow-md overflow-hidden mb-8">
                         <div className="flex flex-col">
                           <p className="text-md font-semibold text-gray-600 mb-2">
                             {ethers.utils
@@ -488,7 +493,7 @@ export default function CreatorPage() {
               </div> */}
                       <div>
                         <button
-                          className="w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none disabled:bg-indigo-300 disabled:cursor-not-allowed disabled:opacity-50"
+                          className="w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-md font-bold text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none disabled:bg-indigo-300 disabled:cursor-not-allowed disabled:opacity-50"
                           disabled={!storyRootContent}
                         >
                           Start
@@ -510,7 +515,7 @@ export default function CreatorPage() {
       )}
       {isModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-30 backdrop-blur-sm flex justify-center items-center p-4">
-          <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full max-h-[90vh] overflow-y-auto">
+          <div className="bg-white p-6 rounded-md shadow-lg max-w-md w-full max-h-[90vh] overflow-y-auto">
             <div>
               <div className="mb-4">
                 <h3 className="text-lg leading-6 font-medium text-gray-900">Send Transaction</h3>
