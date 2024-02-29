@@ -19,16 +19,32 @@ const config: HardhatUserConfig = {
   },
 };
 
-// task("view", "start story")
-//   .addParam("address", "Contract address")
-//   .addParam("index", "Content index")
-//   .setAction(async (taskArgs, hre) => {
-//     const address = taskArgs.address;
-//     const index = taskArgs.index;
-//     const contract = await hre.viem.getContractAt("StoryGameNFT", address);
-//     const story = await contract.read.getStory([BigInt(index)]);
-//     console.log(story);
-//   });
+task("debugChainlinkFunctionsSendRequest", "start story")
+  .addParam("address", "Contract address")
+  .addParam("branchContentId", "Branch content id")
+  .setAction(async (taskArgs, hre) => {
+    const address = taskArgs.address;
+    const branchContentId = taskArgs.branchContentId;
+    const contract = await hre.viem.getContractAt("StoryBranchMinterL1Exposure", address);
+    const script = `
+      const chainId = args[0];
+      const branchContentId = args[1];
+      const apiResponse = await Functions.makeHttpRequest({
+      url: 'https://2024-eth-denver.vercel.app/api/ai',
+      params: {
+      chainId,
+      branchContentId,
+      }
+      });
+      if (apiResponse.error) {
+      throw Error('Request failed');
+      }
+      const { data } = apiResponse;
+      return Functions.encodeString(data.content);
+    `;
+    const tx = await contract.write.debugChainlinkFunctionsSendRequest([branchContentId, script]);
+    console.log(tx);
+  });
 
 // task("start", "start story")
 //   .addParam("address", "Contract address")

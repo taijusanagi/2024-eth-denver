@@ -126,12 +126,12 @@ abstract contract StoryBranchMinter is FunctionsClient {
         uint256 branchContentId,
         string memory response
     ) internal {
-        // require(
-        //     statuses[branchContentId] == Status.WaitingOracleResponse,
-        //     "StoryBranchMinter: Invalid status"
-        // );
-        // statuses[branchContentId] = Status.WaitingUserInteraction;
-        // oracleResponses[branchContentId].push(response);
+        require(
+            statuses[branchContentId] == Status.WaitingOracleResponse,
+            "StoryBranchMinter: Invalid status"
+        );
+        statuses[branchContentId] = Status.WaitingUserInteraction;
+        oracleResponses[branchContentId].push(response);
     }
 
     function _sendRequestToChainlink(uint256 branchContentId) internal {
@@ -155,7 +155,7 @@ abstract contract StoryBranchMinter is FunctionsClient {
         bytes memory response,
         bytes memory
     ) internal override {
-        string memory content = abi.decode(response, (string));
+        string memory content = string(response);
         uint256 branchContentId = functionRequestIdToBranchContentId[requestId];
         _processOracleRespond(branchContentId, content);
     }

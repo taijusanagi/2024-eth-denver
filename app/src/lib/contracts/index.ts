@@ -7,6 +7,9 @@ export const deployedSepoliaBlobDirectory = "0x53E2e6379a5697f09C8Eedd4fE05Da4f9
 export const sepoliaRPC = "https://rpc.sepolia.ethpandaops.io";
 export const sepoliaEthereumStorageNodeRPC = "http://65.108.236.27:9540";
 
-export const contentNFTAddress = "0x84759a670722fc5666f2baff12d5db1542e47a84";
-export const storyBranchMinterL1Address = "0xc7aa2dd612ea702148031ba0afb8777e0b8ef044";
-export const graphQLUri = "https://api.studio.thegraph.com/query/66919/storyteller/v0.0.5";
+export const contentNFTAddress = "0x4dbf1695bf423247dfeaba83af146eaf04865e8f";
+export const storyBranchMinterL1Address = "0x0b45be73373752f573ac167fdc9e719eeeb43dcc";
+export const graphQLUri = "https://api.studio.thegraph.com/query/66919/storyteller/v0.0.6";
+
+// abi path
+// ./contracts/artifacts/contracts/ContentNFT.sol/ContentNFT.json
