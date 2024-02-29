@@ -14,14 +14,15 @@ export const script = `
   const branchContentId = args[1];
   const apiResponse = await Functions.makeHttpRequest({
   url: 'https://2024-eth-denver.vercel.app/api/ai',
+  // url: 'https://2024-eth-denver.vercel.app/api/test',
   params: {
   chainId,
   branchContentId,
   }
   });
   if (apiResponse.error) {
-    throw Error("Request Failed: Code: " + response.code + " Message: " + response.message);
     // return Functions.encodeString("I'm sorry, I don't understand. Could you explain that to me, please?");
+    throw Error("Request Failed: Code: " + apiResponse.error.code + " Message: " + apiResponse.error.message);
   }
   const { data } = apiResponse;
   return Functions.encodeString(data.content);
