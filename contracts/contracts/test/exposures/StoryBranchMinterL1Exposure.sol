@@ -39,10 +39,10 @@ contract StoryBranchMinterL1Exposure is StoryBranchMinterL1 {
 
     function debugChainlinkFunctionsSendRequest(
         uint256 branchContentId,
-        string memory script
+        string memory overrideScript
     ) public {
         FunctionsRequest.Request memory req;
-        req.initializeRequestForInlineJavaScript(interactScript);
+        req.initializeRequestForInlineJavaScript(overrideScript);
         string[] memory args = new string[](2);
         args[0] = block.chainid.toString();
         args[1] = branchContentId.toString();

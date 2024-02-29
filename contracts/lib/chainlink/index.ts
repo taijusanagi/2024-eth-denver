@@ -10,18 +10,19 @@ export const chainlinkConfig = {
 };
 
 export const script = `
-const chainId = args[0];
-const branchContentId = args[1];
-const apiResponse = await Functions.makeHttpRequest({
-url: 'https://2024-eth-denver.vercel.app/api/ai',
-params: {
-chainId,
-branchContentId,
-}
-});
-if (apiResponse.error) {
-  return Functions.encodeString("I'm sorry, I don't understand. Could you explain that to me, please?");
-}
-const { data } = apiResponse;
-return Functions.encodeString(data.content);
+  const chainId = args[0];
+  const branchContentId = args[1];
+  const apiResponse = await Functions.makeHttpRequest({
+  url: 'https://2024-eth-denver.vercel.app/api/ai',
+  params: {
+  chainId,
+  branchContentId,
+  }
+  });
+  if (apiResponse.error) {
+    throw Error("Request Failed: Code: " + response.code + " Message: " + response.message);
+    // return Functions.encodeString("I'm sorry, I don't understand. Could you explain that to me, please?");
+  }
+  const { data } = apiResponse;
+  return Functions.encodeString(data.content);
 `;
