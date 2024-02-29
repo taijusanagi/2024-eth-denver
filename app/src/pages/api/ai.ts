@@ -33,7 +33,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     storyBranchMinterAddress = storyBranchMinterL1Address;
     storyBranchMinterAbi = storyBranchMinterL1Abi;
   } else {
-    return Response.json({ error: "Chain ID not supported" }, { status: 400 });
+    return res.status(400).json({ error: "Chain ID not supported" });
   }
   const storyBranchMinterContract = new ethers.Contract(
     storyBranchMinterAddress,
