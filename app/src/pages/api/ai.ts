@@ -18,7 +18,7 @@ const openai = new OpenAI({
 });
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<any>) {
-  return res.json({ content: "ok" });
+  return res.json({ content: "I'm fine thank you!" });
 
   // const { chainId, branchContentId } = req.query;
   // if (!chainId || !branchContentId || typeof chainId != "string" || typeof branchContentId != "string") {
