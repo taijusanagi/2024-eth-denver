@@ -7,6 +7,7 @@ import {FunctionsClient} from "@chainlink/contracts/src/v0.8/functions/dev/v1_0_
 import {FunctionsRequest} from "@chainlink/contracts/src/v0.8/functions/dev/v1_0_0/libraries/FunctionsRequest.sol";
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 
+// add delete
 abstract contract StoryBranchMinter is FunctionsClient {
     using FunctionsRequest for FunctionsRequest.Request;
     using Strings for uint256;

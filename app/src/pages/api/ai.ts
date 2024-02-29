@@ -26,7 +26,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
   const sepoliaProvider = new ethers.providers.JsonRpcProvider(sepoliaRPC);
   const sepoliaEthereumStorageProvider = new ethers.providers.JsonRpcProvider(sepoliaEthereumStorageNodeRPC);
   const nftContentContract = new ethers.Contract(contentNFTAddress, contentNFTAbi, sepoliaProvider);
-
   let storyBranchMinterProvider;
   let storyBranchMinterAddress;
   let storyBranchMinterAbi;
@@ -42,7 +41,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     storyBranchMinterAbi,
     storyBranchMinterProvider
   );
-
   const [rootTokenId] = await storyBranchMinterContract.getContent(branchContentId);
   console.log(rootTokenId);
   const [directory, name] = await nftContentContract.rootContentLocations(rootTokenId);
@@ -54,7 +52,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
   const chatCompletion = await openai.chat.completions.create({
     messages: [{ role: "user", content: ethers.utils.toUtf8String(content) }],
     model: "gpt-3.5-turbo",
+    seed: parseInt(branchContentId),
   });
-  console.log(chatCompletion);
+  console.log(chatCompletion.choices[0].message.content);
   return res.json({ content: chatCompletion.choices[0].message.content });
 }
