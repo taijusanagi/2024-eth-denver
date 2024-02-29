@@ -1,8 +1,8 @@
 import { ApolloClient, InMemoryCache, HttpLink } from "@apollo/client";
+import { graphQLUri } from "./contracts";
 
-const uri = "https://api.studio.thegraph.com/query/66919/storyteller/v0.0.1";
 const httpLink = new HttpLink({
-  uri,
+  uri: graphQLUri,
 });
 
 const client = new ApolloClient({

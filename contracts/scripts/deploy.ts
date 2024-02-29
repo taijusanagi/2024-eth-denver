@@ -11,7 +11,8 @@ async function main() {
     storyProtocolConfig.sepolia.ipResolver,
     storyProtocolConfig.sepolia.licensingModule,
   ]);
-  const storyBranchMinterL1 = await hre.viem.deployContract("StoryBranchMinterL1" as string, [
+  // using contract with debug function
+  const storyBranchMinterL1 = await hre.viem.deployContract("StoryBranchMinterL1Exposure" as string, [
     chainlinkConfig.sepolia.functionsRouterAddress,
     chainlinkConfig.sepolia.functionsSubscriptionId,
     chainlinkConfig.sepolia.functionsGasLimit,
