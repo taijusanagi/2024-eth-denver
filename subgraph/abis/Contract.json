@@ -275,7 +275,6 @@
     "name": "branchMinterL1Set",
     "type": "event"
   },
-  { "stateMutability": "nonpayable", "type": "fallback" },
   {
     "inputs": [
       { "internalType": "address", "name": "to", "type": "address" },
@@ -478,13 +477,6 @@
     "type": "function"
   },
   {
-    "inputs": [],
-    "name": "resolveMode",
-    "outputs": [{ "internalType": "bytes32", "name": "", "type": "bytes32" }],
-    "stateMutability": "pure",
-    "type": "function"
-  },
-  {
     "inputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
     "name": "rootContentLocations",
     "outputs": [
@@ -539,13 +531,6 @@
     "name": "setBranchMinterL1",
     "outputs": [],
     "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [{ "internalType": "string", "name": "s", "type": "string" }],
-    "name": "stringToUint",
-    "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
-    "stateMutability": "pure",
     "type": "function"
   },
   {

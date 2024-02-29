@@ -7,7 +7,6 @@ import {FunctionsClient} from "@chainlink/contracts/src/v0.8/functions/dev/v1_0_
 import {FunctionsRequest} from "@chainlink/contracts/src/v0.8/functions/dev/v1_0_0/libraries/FunctionsRequest.sol";
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 
-// add delete
 abstract contract StoryBranchMinter is FunctionsClient {
     using FunctionsRequest for FunctionsRequest.Request;
     using Strings for uint256;
@@ -21,7 +20,8 @@ abstract contract StoryBranchMinter is FunctionsClient {
     enum Status {
         WaitingOracleResponse,
         WaitingUserInteraction,
-        Ended
+        Ended,
+        Canceled
     }
 
     mapping(address => uint256) public activeBranchContentIds;
@@ -89,6 +89,21 @@ abstract contract StoryBranchMinter is FunctionsClient {
         );
         delete activeBranchContentIds[creator];
         statuses[branchContentId] = Status.Ended;
+    }
+
+    function _cancelBranchContent(address creator) internal {
+        require(
+            activeBranchContentIds[creator] != 0,
+            "StoryBranchMinter: no active branch content"
+        );
+        uint256 branchContentId = activeBranchContentIds[creator];
+        require(
+            statuses[branchContentId] == Status.WaitingUserInteraction ||
+                statuses[branchContentId] == Status.WaitingOracleResponse,
+            "StoryBranchMinter: Invalid status"
+        );
+        delete activeBranchContentIds[creator];
+        statuses[branchContentId] = Status.Canceled;
     }
 
     function interactFromCreator(string memory interaction) public {

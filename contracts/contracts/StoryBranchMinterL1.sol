@@ -49,6 +49,10 @@ contract StoryBranchMinterL1 is StoryBranchMinter {
         );
     }
 
+    function cancelBranchContent() public {
+        _cancelBranchContent(msg.sender);
+    }
+
     function _mintBranch(
         uint256 rootTokenId,
         uint256 chainId,
