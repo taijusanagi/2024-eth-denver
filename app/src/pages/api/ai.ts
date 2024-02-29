@@ -45,7 +45,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
   const [directory, name] = await nftContentContract.rootContentLocations(rootTokenId);
   const blobRegistryOnEtherStorageNode = new ethers.Contract(directory, IERC5018Abi, sepoliaEthereumStorageProvider);
   const [content] = await blobRegistryOnEtherStorageNode.read(name);
-  const modifiedContent = ethers.utils.toUtf8String(content).replace(/[\u0000\u0020]+$/, "");
+  const modifiedContent = ethers.utils.toUtf8String(content).replace(/^[\u0000\u0020]+|[\u0000\u0020]+$/g, "");
   console.log(modifiedContent);
   const chatCompletion = await openai.chat.completions.create({
     messages: [{ role: "user", content: modifiedContent }],
@@ -56,5 +56,5 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     temperature: 0,
   });
   console.log(chatCompletion.choices[0].message.content);
-  return res.json({ content: chatCompletion.choices[0].message.content });
+  return res.json({ content: chatCompletion.choices[0].message.content, error: { code: "ok", message: "no" } });
 }
