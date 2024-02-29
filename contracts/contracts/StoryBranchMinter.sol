@@ -44,7 +44,7 @@ abstract contract StoryBranchMinter is FunctionsClient {
         "}"
         "});"
         "if (apiResponse.error) {"
-        "throw Error('Request failed');"
+        "return Functions.encodeString('I'm sorry, I don't understand. Could you explain that to me, please?');" // Chainlink functions sometimes fail to compute, so we prepare message to let user try again
         "}"
         "const { data } = apiResponse;"
         "return Functions.encodeString(data.content);";
