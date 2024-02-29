@@ -22,32 +22,33 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
   if (!chainId || !branchContentId || typeof chainId != "string" || typeof branchContentId != "string") {
     return res.status(400).json({ error: "Chain ID or branchContentId not provided" });
   }
-  console.log(chainId, branchContentId);
-  const sepoliaProvider = new ethers.providers.JsonRpcProvider(sepoliaRPC);
-  const sepoliaEthereumStorageProvider = new ethers.providers.JsonRpcProvider(sepoliaEthereumStorageNodeRPC);
-  const nftContentContract = new ethers.Contract(contentNFTAddress, contentNFTAbi, sepoliaProvider);
-  let storyBranchMinterProvider;
-  let storyBranchMinterAddress;
-  let storyBranchMinterAbi;
-  if (chainId === "11155111") {
-    storyBranchMinterProvider = new ethers.providers.JsonRpcProvider(sepoliaRPC);
-    storyBranchMinterAddress = storyBranchMinterL1Address;
-    storyBranchMinterAbi = storyBranchMinterL1Abi;
-  } else {
-    return Response.json({ error: "Chain ID not supported" }, { status: 400 });
-  }
-  const storyBranchMinterContract = new ethers.Contract(
-    storyBranchMinterAddress,
-    storyBranchMinterAbi,
-    storyBranchMinterProvider
-  );
-  const [rootTokenId] = await storyBranchMinterContract.getContent(branchContentId);
-  console.log(rootTokenId);
-  const [directory, name] = await nftContentContract.rootContentLocations(rootTokenId);
-  const blobRegistryOnEtherStorageNode = new ethers.Contract(directory, IERC5018Abi, sepoliaEthereumStorageProvider);
-  const [content] = await blobRegistryOnEtherStorageNode.read(name);
+  // console.log(chainId, branchContentId);
+  // const sepoliaProvider = new ethers.providers.JsonRpcProvider(sepoliaRPC);
+  // const sepoliaEthereumStorageProvider = new ethers.providers.JsonRpcProvider(sepoliaEthereumStorageNodeRPC);
+  // const nftContentContract = new ethers.Contract(contentNFTAddress, contentNFTAbi, sepoliaProvider);
+  // let storyBranchMinterProvider;
+  // let storyBranchMinterAddress;
+  // let storyBranchMinterAbi;
+  // if (chainId === "11155111") {
+  //   storyBranchMinterProvider = new ethers.providers.JsonRpcProvider(sepoliaRPC);
+  //   storyBranchMinterAddress = storyBranchMinterL1Address;
+  //   storyBranchMinterAbi = storyBranchMinterL1Abi;
+  // } else {
+  //   return Response.json({ error: "Chain ID not supported" }, { status: 400 });
+  // }
+  // const storyBranchMinterContract = new ethers.Contract(
+  //   storyBranchMinterAddress,
+  //   storyBranchMinterAbi,
+  //   storyBranchMinterProvider
+  // );
+  // const [rootTokenId] = await storyBranchMinterContract.getContent(branchContentId);
+  // console.log(rootTokenId);
+  // const [directory, name] = await nftContentContract.rootContentLocations(rootTokenId);
+  // const blobRegistryOnEtherStorageNode = new ethers.Contract(directory, IERC5018Abi, sepoliaEthereumStorageProvider);
+  // const [content] = await blobRegistryOnEtherStorageNode.read(name);
+  const content = "how are you?";
   ethers.utils.toUtf8String(content);
-  console.log(directory, name);
+  // console.log(directory, name);
   // const content = "ok";
   const chatCompletion = await openai.chat.completions.create({
     messages: [{ role: "user", content: ethers.utils.toUtf8String(content) }],

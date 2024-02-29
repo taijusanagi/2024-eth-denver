@@ -42,6 +42,7 @@ task("debugChainlinkFunctionsSendRequest", "start story")
       const { data } = apiResponse;
       return Functions.encodeString(data.content);
     `;
+    console.log(script);
     const tx = await contract.write.debugChainlinkFunctionsSendRequest([branchContentId, script]);
     console.log(tx);
   });
