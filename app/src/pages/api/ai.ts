@@ -40,15 +40,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     storyBranchMinterAbi,
     storyBranchMinterProvider
   );
-  const [rootTokenId] = await storyBranchMinterContract.getContent(branchContentId);
+  const [rootTokenId, oracleResponses, userInteractions] = await storyBranchMinterContract.getContent(branchContentId);
   console.log(rootTokenId);
   const [directory, name] = await nftContentContract.rootContentLocations(rootTokenId);
   const blobRegistryOnEtherStorageNode = new ethers.Contract(directory, IERC5018Abi, sepoliaEthereumStorageProvider);
   const [content] = await blobRegistryOnEtherStorageNode.read(name);
-  const modifiedContent = ethers.utils.toUtf8String(content).replace(/^[\u0000\u0020]+|[\u0000\u0020]+$/g, "");
-  console.log(modifiedContent);
+  const modifiedRootContent = ethers.utils.toUtf8String(content).replace(/^[\u0000\u0020]+|[\u0000\u0020]+$/g, "");
+  const messages: any = [{ role: "system", content: modifiedRootContent }];
+  oracleResponses.forEach((response: string, index: number) => {
+    messages.push({ role: "assistant", content: response });
+    messages.push({ role: "user", content: userInteractions[index] });
+  });
+  console.log(messages);
   const chatCompletion = await openai.chat.completions.create({
-    messages: [{ role: "user", content: modifiedContent }],
+    messages,
     // messages: [{ role: "user", content }],
     model: "gpt-3.5-turbo",
     // seed: parseInt(branchContentId), // this is required to use chat gpi in functions

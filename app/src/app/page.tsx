@@ -84,10 +84,27 @@ export default function CreatorPage() {
   const [licenceAmount] = useState(defaultLicenseAmount);
   const [creatingStoryRootName, setCreatingStoryRootName] = useState("");
   const [creatingStoryRootContent, setCreatingStoryRootContent] = useState("");
-  const [interactionContent, setInteractionContent] = useState("");
+  const [isBranchContentLoaded, setIsBranchContentLoaeded] = useState(false);
+  const [oracleResponses, setOracleResponses] = useState<string[]>([]);
+  const [userInteractions, setUserInteractions] = useState<string[]>([]);
 
-  const storyBranchContent = ``;
-  const storyBranchContentLengthInPage = 80;
+  const { branchContent, isStarted, isUserInteractionRequired, isWaitingOracleResponse } = useMemo(() => {
+    let branchContent = "";
+    oracleResponses.forEach((response, index) => {
+      branchContent += `**Oracle:** \n${response}\n\n\n`; // Add oracle response
+      if (index < userInteractions.length) {
+        branchContent += `**User:** \n${userInteractions[index]}\n\n\n`; // Add user interaction if it exists
+      }
+    });
+    return {
+      branchContent,
+      isStarted: isBranchContentLoaded && oracleResponses.length > 0,
+      isUserInteractionRequired: oracleResponses.length > userInteractions.length,
+      isWaitingOracleResponse: oracleResponses.length == userInteractions.length,
+    };
+  }, [isBranchContentLoaded, oracleResponses, userInteractions]);
+
+  const [interactionContent, setInteractionContent] = useState("");
 
   useEffect(() => {
     if (process.env.NEXT_PUBLIC_DISABLE_SPRITE == "true") {
@@ -109,15 +126,14 @@ export default function CreatorPage() {
     // access eth storage node to handle blob data
     const provider = new ethers.providers.JsonRpcProvider(sepoliaEthereumStorageNodeRPC);
     const contract = new ethers.Contract(story.rootContentLocation_directory, IERC5018Abi, provider);
-
-    console.log(story.rootContentLocation_directory);
-    console.log(story.rootContentLocation_name);
-
     contract
       .read(story.rootContentLocation_name)
       .then(([content]: [string]) => {
-        console.log("result", content);
-        setStoryRootContent(ethers.utils.toUtf8String(content).replace(/[\u0000\u0020]+$/, ""));
+        if (content == "0x") {
+          setStoryRootContent("Failed to load blob data from Ethereum Storage Node, please try again later.");
+        } else {
+          setStoryRootContent(ethers.utils.toUtf8String(content).replace(/[\u0000\u0020]+$/, ""));
+        }
       })
       .catch((e: Error) => {
         console.log(e.message);
@@ -131,6 +147,31 @@ export default function CreatorPage() {
     }
     setStories(data.rootContentMinteds);
   }, [loading, data]);
+
+  useEffect(() => {
+    const interval = setInterval(async () => {
+      if (mode == "createStoryBranch") {
+        const contract = new ethers.Contract(storyBranchMinterL1Address, storyBranchMinterL1Abi, signer);
+        const branchContentId = await contract.activeBranchContentIds(connectedAddress);
+        const rootTokenId = await contract.rootTokenIds(branchContentId);
+        if (!ethers.BigNumber.from(stories[selectedStoryRootIndex as number].tokenId).eq(rootTokenId)) {
+          throw new Error("Token Id mismatch!!");
+        }
+        const [, oracleResponses, userInteractions] = await contract.getContent(branchContentId);
+        console.log(oracleResponses);
+        console.log(userInteractions);
+        setIsBranchContentLoaeded(true);
+        setOracleResponses(oracleResponses);
+        setUserInteractions(userInteractions);
+      }
+    }, 2500);
+    return () => {
+      setIsBranchContentLoaeded(false);
+      setOracleResponses([]);
+      setUserInteractions([]);
+      clearInterval(interval);
+    };
+  }, [mode]);
 
   return (
     <main className="min-h-screen flex flex-col bg-gradient-to-br from-violet-300 to-pink-300">
@@ -489,20 +530,9 @@ export default function CreatorPage() {
                           </p>
                         </div>
                       </div>
-                      {/* <div className="mb-4">
-                <div className="flex justify-between mb-2">
-                  <label className="block text-sm font-medium text-gray-700">Interaction</label>
-                </div>
-                <textarea
-                  rows={4}
-                  className="block w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-sm disabled:bg-gray-200 disabled:border-gray-200 disabled:text-gray-500 disabled:cursor-not-allowed"
-                  value={interactionContent}
-                  onChange={(e) => {
-                    setInteractionContent(e.target.value);
-                  }}
-                ></textarea>
-              </div> */}
-                      <div>
+                      {branchContent && <p className="mb-4">{branchContent}</p>}
+
+                      {isBranchContentLoaded && !isStarted && (
                         <button
                           className="w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-md font-bold text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none disabled:bg-indigo-300 disabled:cursor-not-allowed disabled:opacity-50"
                           disabled={!storyRootContent}
@@ -519,13 +549,42 @@ export default function CreatorPage() {
                         >
                           Start
                         </button>
-                        {/* <button
-                  className="w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none disabled:bg-indigo-300 disabled:cursor-not-allowed disabled:opacity-50"
-                  disabled={!interactionContent || interactionContent.length > 120}
-                >
-                  Send
-                </button> */}
-                      </div>
+                      )}
+                      {isBranchContentLoaded && isStarted && (
+                        <div>
+                          <textarea
+                            rows={4}
+                            className="block w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-sm disabled:bg-gray-200 disabled:border-gray-200 disabled:text-gray-500 disabled:cursor-not-allowed mb-4"
+                            value={interactionContent}
+                            disabled={isWaitingOracleResponse || !isUserInteractionRequired}
+                            onChange={(e) => {
+                              setInteractionContent(e.target.value);
+                            }}
+                          ></textarea>
+                          <button
+                            className="w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none disabled:bg-indigo-300 disabled:cursor-not-allowed disabled:opacity-50"
+                            disabled={
+                              isWaitingOracleResponse ||
+                              !isUserInteractionRequired ||
+                              !interactionContent ||
+                              interactionContent.length > 120
+                            }
+                            onClick={async () => {
+                              const tokenId = stories[selectedStoryRootIndex].tokenId;
+                              const contract = new ethers.Contract(
+                                storyBranchMinterL1Address,
+                                storyBranchMinterL1Abi,
+                                signer
+                              );
+                              const tx = await contract.interactFromCreator(interactionContent);
+                              console.log(tx);
+                              setInteractionContent("");
+                            }}
+                          >
+                            Send
+                          </button>
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
