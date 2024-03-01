@@ -91,9 +91,9 @@ export default function CreatorPage() {
   const { branchContent, isStarted, isUserInteractionRequired, isWaitingOracleResponse } = useMemo(() => {
     let branchContent = "";
     oracleResponses.forEach((response, index) => {
-      branchContent += `**Oracle:** \n${response}\n\n\n`; // Add oracle response
+      branchContent += `${response}<br/><br>`; // Add oracle response
       if (index < userInteractions.length) {
-        branchContent += `**User:** \n${userInteractions[index]}\n\n\n`; // Add user interaction if it exists
+        branchContent += `## User <br/>${userInteractions[index]}<br/><br/><br/>`; // Add user interaction if it exists
       }
     });
     return {
@@ -136,7 +136,12 @@ export default function CreatorPage() {
         if (content == "0x") {
           setStoryRootContent("Failed to load blob data from Ethereum Storage Node, please try again later.");
         } else {
-          setStoryRootContent(ethers.utils.toUtf8String(content).replace(/[\u0000\u0020]+$/, ""));
+          setStoryRootContent(
+            ethers.utils
+              .toUtf8String(content)
+              .replace(/\u0000/g, "")
+              .replace(/\s+$/, "")
+          );
         }
       })
       .catch((e: Error) => {
@@ -164,17 +169,21 @@ export default function CreatorPage() {
     const interval = setInterval(async () => {
       if (mode == "createStoryBranch") {
         const contract = new ethers.Contract(storyBranchMinterL1Address, storyBranchMinterL1Abi, signer);
-        const branchContentId = await contract.activeBranchContentIds(connectedAddress);
-        const rootTokenId = await contract.rootTokenIds(branchContentId);
-        if (!ethers.BigNumber.from(stories[selectedStoryRootIndex as number].tokenId).eq(rootTokenId)) {
-          throw new Error("Token Id mismatch!!");
+        const branchContentId = (await contract.activeBranchContentIds(connectedAddress)) as ethers.BigNumber;
+        if (branchContentId.gt(0)) {
+          const rootTokenId = await contract.rootTokenIds(branchContentId);
+          if (!ethers.BigNumber.from(stories[selectedStoryRootIndex as number].tokenId).eq(rootTokenId)) {
+            throw new Error("Token Id mismatch!!");
+          }
+          const [, oracleResponses, userInteractions] = await contract.getContent(branchContentId);
+          console.log(oracleResponses);
+          console.log(userInteractions);
+          setIsBranchContentLoaeded(true);
+          setOracleResponses(oracleResponses);
+          setUserInteractions(userInteractions);
+        } else {
+          setIsBranchContentLoaeded(true);
         }
-        const [, oracleResponses, userInteractions] = await contract.getContent(branchContentId);
-        console.log(oracleResponses);
-        console.log(userInteractions);
-        setIsBranchContentLoaeded(true);
-        setOracleResponses(oracleResponses);
-        setUserInteractions(userInteractions);
       }
     }, 2500);
     return () => {
@@ -456,11 +465,11 @@ export default function CreatorPage() {
                             }:11155111/${ethers.utils.toUtf8String(
                               stories[selectedStoryRootIndex].rootContentLocation_name
                             )}`}</p>
-                            <p className="text-sm text-gray-600">
+                            <Markdown className="md-content">
                               {storyRootContent != ""
                                 ? storyRootContent
                                 : "Loading blob data from Ethereum Storage Node..."}
-                            </p>
+                            </Markdown>
                           </div>
                         </div>
                       </div>
@@ -541,14 +550,14 @@ export default function CreatorPage() {
                           }:11155111/${ethers.utils.toUtf8String(
                             stories[selectedStoryRootIndex].rootContentLocation_name
                           )}`}</p>
-                          <p className="text-sm text-gray-600">
+                          <Markdown className="md-content">
                             {storyRootContent != ""
                               ? storyRootContent
                               : "Loading blob data from Ethereum Storage Node..."}
-                          </p>
+                          </Markdown>
                         </div>
                       </div>
-                      {branchContent && <Markdown className="mb-4">{branchContent}</Markdown>}
+                      {branchContent && <Markdown className="mb-4 md-content">{branchContent}</Markdown>}
                       <div className="space-y-4">
                         {!isBranchContentLoaded && (
                           <div className="flex justify-center items-center pt-4">

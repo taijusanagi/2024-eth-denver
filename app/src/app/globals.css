@@ -1,3 +1,95 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Typography CSS for ReactMarkdown with Tailwind CSS */
+
+/* Base Typography */
+.md-content {
+  font-family: "Roboto", sans-serif; /* Change the font family to your preference */
+  font-size: 16px; /* Base font size */
+  line-height: 1.6; /* Base line height */
+}
+
+/* Headers */
+.md-content h1 {
+  font-size: 2.5rem; /* Adjust the size of H1 headings */
+  font-weight: bold; /* H1 font weight */
+  margin-top: 2rem; /* H1 top margin */
+  margin-bottom: 1rem; /* H1 bottom margin */
+}
+
+.md-content h2 {
+  font-size: 2rem; /* Adjust the size of H2 headings */
+  font-weight: bold; /* H2 font weight */
+  margin-top: 1.5rem; /* H2 top margin */
+  margin-bottom: 0.5rem; /* H2 bottom margin */
+}
+
+.md-content h3 {
+  font-size: 1.75rem; /* Adjust the size of H3 headings */
+  font-weight: bold; /* H3 font weight */
+  margin-top: 1.25rem; /* H3 top margin */
+  margin-bottom: 0.5rem; /* H3 bottom margin */
+}
+
+/* Paragraphs */
+.md-content p {
+  margin-top: 1rem; /* Paragraph top margin */
+  margin-bottom: 1rem; /* Paragraph bottom margin */
+}
+
+/* Lists */
+.md-content ul,
+.md-content ol {
+  margin-top: 1rem; /* List top margin */
+  margin-bottom: 1rem; /* List bottom margin */
+  padding-left: 2rem; /* List padding-left for indentation */
+}
+
+.md-content ul li::before {
+  content: "•"; /* Bullet point character */
+  color: #4f46e5; /* Bullet point color */
+  font-size: 1.25rem; /* Bullet point size */
+  margin-right: 0.5rem; /* Bullet point right margin */
+}
+
+.md-content li {
+  margin-bottom: 0.5rem; /* List item bottom margin */
+}
+
+/* Links */
+.md-content a {
+  color: #3182ce; /* Link color */
+  text-decoration: underline; /* Link underline */
+}
+
+.md-content a:hover {
+  color: #2c5282; /* Link hover color */
+}
+
+/* Blockquote */
+.md-content blockquote {
+  border-left: 4px solid #3182ce; /* Blockquote border color */
+  padding: 0.5rem; /* Blockquote padding */
+  margin-left: 0; /* Blockquote left margin */
+}
+
+/* Code Blocks */
+.md-content pre {
+  background-color: #f7fafc; /* Code block background color */
+  padding: 1rem; /* Code block padding */
+  border-radius: 0.5rem; /* Code block border radius */
+  overflow-x: auto; /* Code block horizontal scroll */
+}
+
+.md-content code {
+  color: #2d3748; /* Code color */
+}
+
+/* Inline Code */
+.md-content p code {
+  background-color: #edf2f7; /* Inline code background color */
+  padding: 0.2rem 0.4rem; /* Inline code padding */
+  border-radius: 0.25rem; /* Inline code border radius */
+}
