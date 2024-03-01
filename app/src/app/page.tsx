@@ -229,6 +229,17 @@ export default function CreatorPage() {
     return src == "https://2024-eth-denver.vercel.app/trpg/$%7Barea%7D.png" ? undefined : <img src={src} alt={alt} />;
   };
 
+  useEffect(() => {
+    if (isModalOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "auto"; // or 'visible' if you want
+    }
+    return () => {
+      document.body.style.overflow = "auto"; // reset on unmount
+    };
+  }, [isModalOpen]);
+
   const IncentiveModal = () => {
     return (
       <div>
