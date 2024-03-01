@@ -5,6 +5,12 @@ import { ConnectButton, useConnectModal } from "@rainbow-me/rainbowkit";
 import { MdArrowBackIos } from "react-icons/md";
 import { AiOutlineLoading } from "react-icons/ai";
 import Markdown from "react-markdown";
+import { GiReceiveMoney } from "react-icons/gi";
+
+import { GiTeamIdea } from "react-icons/gi";
+import { TbLicense } from "react-icons/tb";
+import { FaMoneyBillWave } from "react-icons/fa";
+
 // import { AiOutlineLoading } from "react-isons/";
 
 import { useAccount } from "wagmi";
@@ -92,6 +98,10 @@ export default function CreatorPage() {
 
   const [selectedStoryBranchIndex, setSelectedStoryBranchIndex] = useState<number>();
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const openModal = (content: any) => {
+    setModalContent(content);
+    setIsModalOpen(true);
+  };
 
   // dev
   const [policyId] = useState(defaultPolicyId);
@@ -102,10 +112,14 @@ export default function CreatorPage() {
   const [oracleResponses, setOracleResponses] = useState<string[]>([]);
   const [userInteractions, setUserInteractions] = useState<string[]>([]);
 
+  const [modalContent, setModalContent] = useState<any>(() => <p>Hello world!</p>);
+
   const { branchContent, isStarted, isUserInteractionRequired, isWaitingOracleResponse } = useMemo(() => {
     let branchContent = "";
     oracleResponses.forEach((response, index) => {
-      branchContent += `**StoryTelller:**\n\n${response}\n\n\n\n`; // Add oracle response
+      branchContent += `**StoryTelller:**\n\n${
+        response ? response : "Chainlink Functions computation failed, please try again."
+      }\n\n\n\n`; // Add oracle response
       if (index < userInteractions.length) {
         branchContent += `**User:**\n\n${userInteractions[index]}\n\n\n\n`; // Add user interaction if it exists
       }
@@ -213,6 +227,82 @@ export default function CreatorPage() {
 
   const CustomImage = ({ src, alt }: any) => {
     return src == "https://2024-eth-denver.vercel.app/trpg/$%7Barea%7D.png" ? undefined : <img src={src} alt={alt} />;
+  };
+
+  const IncentiveModal = () => {
+    return (
+      <div>
+        <div className="mb-4">
+          <div className="flex justify-between items-center">
+            <h3 className="text-lg leading-6 font-medium text-gray-900">
+              Decentralized Incentive program with Story Protocol&apos;s IPFi
+            </h3>
+            <button onClick={() => setIsModalOpen(false)} className="text-3xl text-gray-400 hover:text-gray-500 pb-2">
+              &times;
+            </button>
+          </div>
+        </div>
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-3 mt-4">
+          <div className="flex flex-col border p-4 rounded-lg h-full">
+            <div className="flex-1">
+              <GiTeamIdea className="mx-auto my-4 mt-2 text-4xl text-indigo-600" /> {/* Icon for IP */}
+              <h4 className="font-medium text-gray-900 mb-2 text-xl text-center">IP</h4>
+              <p className="text-gray-600 text-xs text-center mb-4">
+                Trade your content NFT, which serves as the key to accessing its associated intellectual property.
+                Trading this NFT transfers full control of the IP, allowing new owners to harness its value.
+              </p>
+            </div>
+            <div className="flex justify-center">
+              <button
+                disabled
+                type="button"
+                className="w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none disabled:bg-indigo-300 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                Start
+              </button>
+            </div>
+          </div>
+          <div className="flex flex-col border p-4 rounded-lg h-full">
+            <div className="flex-1">
+              <TbLicense className="mx-auto mb-4 mt-2 text-4xl text-indigo-600" /> {/* Icon for License */}
+              <h4 className="font-medium text-gray-900 mb-2 text-xl text-center">License</h4>
+              <p className="text-gray-600 text-xs text-center mb-4">
+                Trade licenses that permit the generation of new child IPs. By acquiring a license, you gain the ability
+                to create derivative works and expand on the original intellectual property.
+              </p>
+            </div>
+            <div className="flex justify-center">
+              <button
+                disabled
+                type="button"
+                className="w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none disabled:bg-indigo-300 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                Start
+              </button>
+            </div>
+          </div>
+          <div className="flex flex-col border p-4 rounded-lg h-full">
+            <div className="flex-1">
+              <FaMoneyBillWave className="mx-auto mb-4 mt-2 text-4xl text-indigo-600" /> {/* Icon for Royalty */}
+              <h4 className="font-medium text-gray-900 mb-2 text-xl text-center">Royalty</h4>
+              <p className="text-gray-600 text-xs text-center mb-4">
+                Trade your rights to receive future royalties from child IPs. This allows you to monetize your share of
+                the earnings from derivative works, transferring your income rights to others.
+              </p>
+            </div>
+            <div className="flex justify-center">
+              <button
+                disabled
+                type="button"
+                className="w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none disabled:bg-indigo-300 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                Start
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
   };
 
   return (
@@ -451,7 +541,13 @@ export default function CreatorPage() {
                     <div>
                       <div className="flex justify-between mb-4">
                         <h2 className="text-xl md:text-4xl font-semibold text-gray-800">View Story Root</h2>
-                        <div>
+                        <div className="flex items-center space-x-4">
+                          <GiReceiveMoney
+                            className="text-indigo-600 text-xl hover:opacity-75 cursor-pointer"
+                            onClick={() => {
+                              openModal(() => <IncentiveModal />);
+                            }}
+                          />
                           <button
                             className="block text-sm px-3 md:px-4 py-1 md:py-2 font-bold text-indigo-600 rounded-md hover:opacity-75 outline"
                             onClick={() => {
@@ -726,24 +822,14 @@ export default function CreatorPage() {
         </>
       )}
       {isModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-30 backdrop-blur-sm flex justify-center items-center p-4">
-          <div className="bg-white p-6 rounded-md shadow-lg max-w-md w-full max-h-[90vh] overflow-y-auto">
-            <div>
-              <div className="mb-4">
-                <h3 className="text-lg leading-6 font-medium text-gray-900">Send Transaction</h3>
-              </div>
-              <div className="mt-4 flex justify-end">
-                <button
-                  type="button"
-                  className="py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none"
-                  onClick={() => {
-                    setIsModalOpen(false);
-                  }}
-                >
-                  Confirm
-                </button>
-              </div>
-            </div>
+        <div
+          className="fixed inset-0 bg-black bg-opacity-30 backdrop-blur-sm flex justify-center items-center p-4"
+          onClick={() => {
+            setIsModalOpen(false);
+          }}
+        >
+          <div className="bg-white p-6 rounded-md shadow-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            {modalContent}
           </div>
         </div>
       )}
