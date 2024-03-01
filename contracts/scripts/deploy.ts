@@ -21,11 +21,12 @@ async function main() {
     contentNFT.address,
   ]);
   await contentNFT.write.setBranchMinterL1([storyBranchMinterL1.address, true]);
-  const functionsRouter = await hre.viem.getContractAt(
-    "IFunctionsRouter" as string,
-    chainlinkConfig.sepolia.functionsRouterAddress as `0x${"string"}`,
-  );
-  await functionsRouter.write.addConsumer([storyBranchMinterL1.address]);
+  // do this manually right now
+  // const functionsRouter = await hre.viem.getContractAt(
+  //   "IFunctionsRouter" as string,
+  //   chainlinkConfig.sepolia.functionsRouterAddress as `0x${"string"}`,
+  // );
+  // await functionsRouter.write.addConsumer([storyBranchMinterL1.address]);
   console.log(`ContentNFT deployed to ${contentNFT.address}`);
   console.log(`StoryBranchMinterL1 deployed to ${storyBranchMinterL1.address}`);
 }

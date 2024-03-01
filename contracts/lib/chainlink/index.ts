@@ -17,7 +17,8 @@ export const script = `
   params: {
   chainId,
   branchContentId,
-  }
+  },
+  timeout: 9000, // this is the trick
   });
   if (apiResponse.error) {
     return Functions.encodeString("I'm sorry, I don't understand. Could you explain that to me, please?");
@@ -25,3 +26,6 @@ export const script = `
   const { data } = apiResponse;
   return Functions.encodeString(data.content);
 `;
+
+// for debug
+// return Functions.encodeString(apiResponse.message + ":" + apiResponse.code + ":" + apiResponse.response);
