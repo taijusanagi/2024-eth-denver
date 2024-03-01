@@ -28,15 +28,13 @@ Please always respond using the following format to replay; your response is alw
 Please always respond using the following format to replay; your response is always in markdown format.
 
 - Please replace the area in the location by replacing the area slug
-- Please add guidance to let the user beat the boss
-- Please add 3 choice to let the user decide where to go next
+- Please add guidance to help the user beat the boss. Please keep it within around 160 characters
+- Please always ask "What do you do next?" and do not add any word here.
 
 ---
 
-## Location
+![image](https://2024-eth-denver.vercel.app/trpg/${area}.png)
 
-https://2024-eth-denver.vercel.app/trpg/${area}.png
+<add 160 character guidance here>
 
-## Guidance
-
-## Question
+What do you do next?

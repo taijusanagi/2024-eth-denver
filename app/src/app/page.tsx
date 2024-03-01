@@ -28,7 +28,9 @@ import { IERC5018Abi } from "@/lib/ethstorage";
 const namePostfixLength = 18;
 const defaultPolicyId = 1;
 const defaultLicenseAmount = 100;
-const spriteDuration = 2000;
+const spriteDuration = 1500;
+const loadingMessageFromESNode = "Loading blob data from Ethereum Storage Node...";
+const errorMessageFromESNode = "Failed to load blob data from Ethereum Storage Node, please try again later.";
 
 const ROOT_QUERY = gql`
   query {
@@ -43,8 +45,8 @@ const ROOT_QUERY = gql`
 `;
 
 const BRANCH_QUERY = gql`
-  query {
-    branchContentMinteds(orderBy: tokenId, orderDirection: desc) {
+  query MyQuery($rootTokenId: String!) {
+    branchContentMinteds(where: { rootTokenId: $rootTokenId }, orderBy: tokenId, orderDirection: desc) {
       rootTokenId
       tokenId
       ipId
@@ -62,19 +64,31 @@ export default function CreatorPage() {
   const { openConnectModal } = useConnectModal();
 
   const { loading: rootQueryLoading, data: rootQueryResult } = useQuery(ROOT_QUERY);
-  const { loading: branchQueryLoading, data: branchQueryResult } = useQuery(BRANCH_QUERY);
+
   const { isConnected } = useIsConnected();
 
   const [spriteMode, setSpriteMode] = useState<"notStarted" | "started" | "fading" | "ended">("notStarted");
   const [mode, setMode] = useState<
     "viewStoryRoots" | "createStoryRoot" | "viewStoryRoot" | "viewStoryBranch" | "createStoryBranch"
   >("viewStoryRoots");
-  const [forkedFrom, setForkedFrom] = useState<number>();
 
   const [stories, setStories] = useState<any[]>(mockRootNFTs);
   const [storyBranches, setStoryBranches] = useState<any[]>([]);
   const [selectedStoryRootIndex, setSelectedStoryRootIndex] = useState<number>();
   const [storyRootContent, setStoryRootContent] = useState("");
+
+  //stories[selectedStoryRootIndex].tokenId;
+  const [selectedRootTokenId, setSelectedRootTokenId] = useState("0");
+
+  // console.log("selectedRootTokenId", selectedRootTokenId);
+
+  const {
+    loading: branchQueryLoading,
+    data: branchQueryResult,
+    refetch,
+  } = useQuery(BRANCH_QUERY, {
+    variables: { rootTokenId: "0" }, // Pass variable to query
+  });
 
   const [selectedStoryBranchIndex, setSelectedStoryBranchIndex] = useState<number>();
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -122,7 +136,7 @@ export default function CreatorPage() {
   }, []);
 
   useEffect(() => {
-    setStoryRootContent("");
+    setStoryRootContent(loadingMessageFromESNode);
     if (stories.length == 0 || selectedStoryRootIndex == undefined || selectedStoryRootIndex >= stories.length) {
       return;
     }
@@ -133,20 +147,23 @@ export default function CreatorPage() {
     contract
       .read(story.rootContentLocation_name)
       .then(([content]: [string]) => {
+        console.log("Root story content loaded...!!!");
         if (content == "0x") {
-          setStoryRootContent("Failed to load blob data from Ethereum Storage Node, please try again later.");
+          setStoryRootContent(errorMessageFromESNode);
         } else {
           setStoryRootContent(
+            // some times the null bytes is incerted into the content, so remove it for now
+            // this is maybe because of the blob conversion
             ethers.utils
               .toUtf8String(content)
-              .replace(/\u0000/g, "")
-              .replace(/\s+$/, "")
+              .replace(/\u0000/g, "") // first null bytes
+              .replace(/\s+$/, "") // then trim
           );
         }
       })
       .catch((e: Error) => {
         console.log(e.message);
-        setStoryRootContent("Failed to load blob data from Ethereum Storage Node, please try again later.");
+        setStoryRootContent(errorMessageFromESNode);
       });
   }, [stories, selectedStoryRootIndex]);
 
@@ -158,7 +175,7 @@ export default function CreatorPage() {
   }, [rootQueryLoading, rootQueryResult]);
 
   useEffect(() => {
-    console.log(branchQueryResult);
+    console.log("branchQueryResult", branchQueryResult, selectedRootTokenId);
     if (!branchQueryResult) {
       return;
     }
@@ -193,6 +210,10 @@ export default function CreatorPage() {
       clearInterval(interval);
     };
   }, [mode]);
+
+  const CustomImage = ({ src, alt }: any) => {
+    return src == "https://2024-eth-denver.vercel.app/trpg/$%7Barea%7D.png" ? undefined : <img src={src} alt={alt} />;
+  };
 
   return (
     <main className="min-h-screen flex flex-col bg-gradient-to-br from-violet-300 to-pink-300">
@@ -250,7 +271,7 @@ export default function CreatorPage() {
             )}
             {isConnected && (
               <>
-                <div className="mb-4 flex justify-between items-center w-full max-w-4xl h-8">
+                <div className="mb-4 flex justify-between items-center w-full max-w-5xl h-8">
                   <div className="cursor-pointer text-white hover:text-gray-100">
                     {mode == "createStoryRoot" && (
                       <MdArrowBackIos size={25} onClick={() => setMode("viewStoryRoots")} />
@@ -262,7 +283,7 @@ export default function CreatorPage() {
                     )}
                   </div>
                 </div>
-                <div className="bg-white backdrop-blur-lg py-8 px-6 rounded-md shadow-2xl w-full max-w-4xl mx-auto">
+                <div className="bg-gray-50 backdrop-blur-lg py-8 px-6 rounded-md shadow-2xl w-full max-w-5xl mx-auto">
                   {mode == "viewStoryRoots" && (
                     <div>
                       <div className="flex justify-between mb-4">
@@ -278,18 +299,18 @@ export default function CreatorPage() {
                           </button>
                         </div>
                       </div>
-                      <div className="grid grid-cols-1 gap-2 break-all">
+                      <div className="grid grid-cols-1 gap-4 p-0 md:p-4">
                         {stories.map((story, index) => (
                           <div
                             key={index}
-                            className="w-full p-4 rounded-md shadow-md overflow-hidden cursor-pointer hover:bg-gray-100"
+                            className="w-full py-6 px-4 md:px-6 rounded-lg border border-gray-200 shadow-lg transition duration-300 ease-in-out hover:shadow-xl hover:border-gray-300 cursor-pointer overflow-hidden"
                             onClick={() => {
                               setSelectedStoryRootIndex(index);
                               setMode("viewStoryRoot");
                             }}
                           >
                             <div className="flex flex-col">
-                              <p className="text-md font-semibold text-gray-600 mb-2">
+                              <p className="text-lg font-semibold text-gray-800 mb-3 overflow-hidden whitespace-nowrap overflow-ellipsis">
                                 {ethers.utils
                                   .toUtf8String(story.rootContentLocation_name)
                                   .substring(
@@ -297,11 +318,14 @@ export default function CreatorPage() {
                                     ethers.utils.toUtf8String(story.rootContentLocation_name).length - namePostfixLength
                                   )}
                               </p>
-                              <p className="text-xs text-gray-600 mb-1">Creator: {story.creator}</p>
-                              <h3 className="text-xs text-gray-600 mb-1">Story Protocol IP ID: {story.ipId}</h3>
-                              <p className="text-xs text-gray-600">{`Content: web3://${
-                                story.rootContentLocation_directory
-                              }:11155111/${ethers.utils.toUtf8String(story.rootContentLocation_name)}`}</p>
+                              <p className="text-sm text-gray-500 mb-2">TokenId: {story.tokenId}</p>
+                              <p className="text-sm text-gray-500 mb-2 overflow-hidden whitespace-nowrap overflow-ellipsis">
+                                Story Protocol IP ID: {story.ipId}
+                              </p>
+                              <p className="text-sm text-gray-500 overflow-hidden whitespace-nowrap overflow-ellipsis">
+                                Content: web3://{story.rootContentLocation_directory}:11155111/
+                                {ethers.utils.toUtf8String(story.rootContentLocation_name)}
+                              </p>
                             </div>
                           </div>
                         ))}
@@ -442,10 +466,10 @@ export default function CreatorPage() {
                           </button>
                         </div>
                       </div>
-                      <div className={storyBranches.length > 0 ? "mb-8" : ""}>
-                        <div className="w-full p-4 rounded-md shadow-md overflow-hidden">
+                      <div className={storyBranches.length > 0 ? "mb-8 p-0 md:p-4" : "p-0 md:p-4"}>
+                        <div className="w-full py-6 px-4 md:px-6 rounded-lg border border-gray-200 shadow-lg transition duration-300 ease-in-out hover:shadow-xl hover:border-gray-300 overflow-hidden">
                           <div className="flex flex-col">
-                            <p className="text-md font-semibold text-gray-600 mb-2">
+                            <p className="text-lg font-semibold text-gray-800 mb-3 overflow-hidden whitespace-nowrap overflow-ellipsis">
                               {ethers.utils
                                 .toUtf8String(stories[selectedStoryRootIndex].rootContentLocation_name)
                                 .substring(
@@ -454,22 +478,38 @@ export default function CreatorPage() {
                                     .length - namePostfixLength
                                 )}
                             </p>
-                            <p className="text-xs text-gray-600 mb-1">
-                              Creator: {stories[selectedStoryRootIndex].creator}
+                            <p className="text-sm text-gray-500 mb-2 overflow-hidden whitespace-nowrap overflow-ellipsis">
+                              TokenId: {stories[selectedStoryRootIndex].tokenId}
                             </p>
-                            <h3 className="text-xs text-gray-600 mb-1">
+                            <h3 className="text-sm text-gray-500 mb-2 overflow-hidden whitespace-nowrap overflow-ellipsis">
                               Story Protocol IP ID: {stories[selectedStoryRootIndex].ipId}
                             </h3>
-                            <p className="text-xs text-gray-600 mb-4">{`Content: web3://${
+                            <p className="text-sm text-gray-500 mb-4 overflow-hidden whitespace-nowrap overflow-ellipsis">{`Content: web3://${
                               stories[selectedStoryRootIndex].rootContentLocation_directory
                             }:11155111/${ethers.utils.toUtf8String(
                               stories[selectedStoryRootIndex].rootContentLocation_name
                             )}`}</p>
-                            <Markdown className="md-content">
-                              {storyRootContent != ""
-                                ? storyRootContent
-                                : "Loading blob data from Ethereum Storage Node..."}
-                            </Markdown>
+                            {storyRootContent == loadingMessageFromESNode && (
+                              <p className="text-center py-2 text-sm text-blue-500 bg-blue-100 rounded-lg">
+                                {loadingMessageFromESNode}
+                              </p>
+                            )}
+                            {storyRootContent == errorMessageFromESNode && (
+                              <p className="text-center py-2 text-sm text-red-500 bg-red-100 rounded-lg">
+                                {errorMessageFromESNode}
+                              </p>
+                            )}
+                            {storyRootContent != loadingMessageFromESNode &&
+                              storyRootContent != errorMessageFromESNode && (
+                                <Markdown
+                                  className="md-content"
+                                  components={{
+                                    img: CustomImage,
+                                  }}
+                                >
+                                  {storyRootContent}
+                                </Markdown>
+                              )}
                           </div>
                         </div>
                       </div>
@@ -528,33 +568,51 @@ export default function CreatorPage() {
                         <h2 className="text-xl md:text-4xl font-semibold text-gray-800">Create Story Branch</h2>
                       </div>
                       {/* <h2 className="text-lg font-semibold text-gray-800 mb-4">Create Story Branch</h2> */}
-                      <div className="w-full p-4 rounded-md shadow-md overflow-hidden mb-4">
-                        <div className="flex flex-col">
-                          <p className="text-md font-semibold text-gray-600 mb-2">
-                            {ethers.utils
-                              .toUtf8String(stories[selectedStoryRootIndex].rootContentLocation_name)
-                              .substring(
-                                0,
-                                ethers.utils.toUtf8String(stories[selectedStoryRootIndex].rootContentLocation_name)
-                                  .length - namePostfixLength
+                      <div className="p-4">
+                        <div className="w-full py-6 px-4 md:px-6 rounded-lg border border-gray-200 shadow-lg transition duration-300 ease-in-out hover:shadow-xl hover:border-gray-300 overflow-hidden">
+                          <div className="flex flex-col">
+                            <p className="text-lg font-semibold text-gray-800 mb-3 overflow-hidden whitespace-nowrap overflow-ellipsis">
+                              {ethers.utils
+                                .toUtf8String(stories[selectedStoryRootIndex].rootContentLocation_name)
+                                .substring(
+                                  0,
+                                  ethers.utils.toUtf8String(stories[selectedStoryRootIndex].rootContentLocation_name)
+                                    .length - namePostfixLength
+                                )}
+                            </p>
+                            <p className="text-sm text-gray-500 mb-2 overflow-hidden whitespace-nowrap overflow-ellipsis">
+                              TokenId: {stories[selectedStoryRootIndex].tokenId}
+                            </p>
+                            <h3 className="text-sm text-gray-500 mb-2 overflow-hidden whitespace-nowrap overflow-ellipsis">
+                              Story Protocol IP ID: {stories[selectedStoryRootIndex].ipId}
+                            </h3>
+                            <p className="text-sm text-gray-500 mb-4 overflow-hidden whitespace-nowrap overflow-ellipsis">{`Content: web3://${
+                              stories[selectedStoryRootIndex].rootContentLocation_directory
+                            }:11155111/${ethers.utils.toUtf8String(
+                              stories[selectedStoryRootIndex].rootContentLocation_name
+                            )}`}</p>
+                            {storyRootContent == loadingMessageFromESNode && (
+                              <p className="text-center py-2 text-sm text-blue-500 bg-blue-100 rounded-lg">
+                                {loadingMessageFromESNode}
+                              </p>
+                            )}
+                            {storyRootContent == errorMessageFromESNode && (
+                              <p className="text-center py-2 text-sm text-red-500 bg-red-100 rounded-lg">
+                                {errorMessageFromESNode}
+                              </p>
+                            )}
+                            {storyRootContent != loadingMessageFromESNode &&
+                              storyRootContent != errorMessageFromESNode && (
+                                <Markdown
+                                  className="md-content"
+                                  components={{
+                                    img: CustomImage,
+                                  }}
+                                >
+                                  {storyRootContent}
+                                </Markdown>
                               )}
-                          </p>
-                          <p className="text-xs text-gray-600 mb-1">
-                            Creator: {stories[selectedStoryRootIndex].creator}
-                          </p>
-                          <h3 className="text-xs text-gray-600 mb-1">
-                            Story Protocol IP ID: {stories[selectedStoryRootIndex].creator}
-                          </h3>
-                          <p className="text-xs text-gray-600 mb-4">{`Content: web3://${
-                            stories[selectedStoryRootIndex].rootContentLocation_directory
-                          }:11155111/${ethers.utils.toUtf8String(
-                            stories[selectedStoryRootIndex].rootContentLocation_name
-                          )}`}</p>
-                          <Markdown className="md-content">
-                            {storyRootContent != ""
-                              ? storyRootContent
-                              : "Loading blob data from Ethereum Storage Node..."}
-                          </Markdown>
+                          </div>
                         </div>
                       </div>
 

@@ -1,0 +1,45 @@
+specVersion: 1.0.0
+indexerHints:
+  prune: auto
+schema:
+  file: schema.graphql
+dataSources:
+  - kind: ethereum
+    name: Contract
+    network: sepolia
+    source:
+      address: "0xb935d4bdd0c0a5e5f0f84ed27cdb9565e7bc62d9"
+      abi: Contract
+      startBlock: 5393012
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      entities:
+        - Approval
+        - ApprovalForAll
+        - BranchContentMinted
+        - OwnershipTransferred
+        - RootContentMinted
+        - Transfer
+        - branchMinterL1Set
+      abis:
+        - name: Contract
+          file: Contract/abis/Contract.json
+      eventHandlers:
+        - event: Approval(indexed address,indexed address,indexed uint256)
+          handler: handleApproval
+        - event: ApprovalForAll(indexed address,indexed address,bool)
+          handler: handleApprovalForAll
+        - event: BranchContentMinted(indexed uint256,indexed
+            uint256,address,address,(uint256,address,uint256))
+          handler: handleBranchContentMinted
+        - event: OwnershipTransferred(indexed address,indexed address)
+          handler: handleOwnershipTransferred
+        - event: RootContentMinted(indexed uint256,address,address,(address,bytes))
+          handler: handleRootContentMinted
+        - event: Transfer(indexed address,indexed address,indexed uint256)
+          handler: handleTransfer
+        - event: branchMinterL1Set(indexed address,bool)
+          handler: handlebranchMinterL1Set
+      file: Contract/Contract.wasm
