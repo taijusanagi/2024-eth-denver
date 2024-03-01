@@ -3,6 +3,9 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { ConnectButton, useConnectModal } from "@rainbow-me/rainbowkit";
 import { MdArrowBackIos } from "react-icons/md";
+import { AiOutlineLoading } from "react-icons/ai";
+import Markdown from "react-markdown";
+// import { AiOutlineLoading } from "react-isons/";
 
 import { useAccount } from "wagmi";
 import { useQuery, gql } from "@apollo/client";
@@ -430,7 +433,7 @@ export default function CreatorPage() {
                           </button>
                         </div>
                       </div>
-                      <div className="mb-8">
+                      <div className={storyBranches.length > 0 ? "mb-8" : ""}>
                         <div className="w-full p-4 rounded-md shadow-md overflow-hidden">
                           <div className="flex flex-col">
                             <p className="text-md font-semibold text-gray-600 mb-2">
@@ -462,7 +465,9 @@ export default function CreatorPage() {
                         </div>
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Story Branches</label>
+                        {storyBranches.length > 0 && (
+                          <label className="block text-sm font-medium text-gray-700 mb-2">Story Branches</label>
+                        )}
                         <div className="grid grid-cols-1 gap-2 break-all">
                           {storyBranches.map((storyBranche, index) => (
                             <div
@@ -543,11 +548,16 @@ export default function CreatorPage() {
                           </p>
                         </div>
                       </div>
-                      {branchContent && <p className="mb-4">{branchContent}</p>}
+                      {branchContent && <Markdown className="mb-4">{branchContent}</Markdown>}
                       <div className="space-y-4">
+                        {!isBranchContentLoaded && (
+                          <div className="flex justify-center items-center pt-4">
+                            <AiOutlineLoading className="animate-spin text-3xl text-indigo-600" />
+                          </div>
+                        )}
                         {isBranchContentLoaded && !isStarted && (
                           <button
-                            className="w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-md font-bold text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none disabled:bg-indigo-300 disabled:cursor-not-allowed disabled:opacity-50"
+                            className="mt-4 w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-md font-bold text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none disabled:bg-indigo-300 disabled:cursor-not-allowed disabled:opacity-50"
                             disabled={!storyRootContent}
                             onClick={async () => {
                               const tokenId = stories[selectedStoryRootIndex].tokenId;
@@ -602,7 +612,7 @@ export default function CreatorPage() {
                           <div className="flex space-x-4">
                             <button
                               className="w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-md font-medium text-black bg-gray-300 hover:bg-gray-400 focus:outline-none disabled:bg-gray-200 disabled:cursor-not-allowed disabled:opacity-50"
-                              disabled={!storyRootContent}
+                              disabled={isWaitingOracleResponse || !isUserInteractionRequired}
                               onClick={async () => {
                                 const contract = new ethers.Contract(
                                   storyBranchMinterL1Address,
@@ -617,7 +627,7 @@ export default function CreatorPage() {
                             </button>
                             <button
                               className="w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-md font-bold text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none disabled:bg-indigo-300 disabled:cursor-not-allowed disabled:opacity-50"
-                              disabled={!storyRootContent}
+                              disabled={isWaitingOracleResponse || !isUserInteractionRequired}
                               onClick={async () => {
                                 const contract = new ethers.Contract(
                                   storyBranchMinterL1Address,
