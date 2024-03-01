@@ -20,6 +20,7 @@ async function main() {
     script,
     contentNFT.address,
   ]);
+  await contentNFT.write.setBranchMinterL1([storyBranchMinterL1.address, true]);
   console.log(`ContentNFT deployed to ${contentNFT.address}`);
   console.log(`StoryBranchMinterL1 deployed to ${storyBranchMinterL1.address}`);
 }

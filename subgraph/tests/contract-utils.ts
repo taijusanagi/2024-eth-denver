@@ -58,6 +58,7 @@ export function createApprovalForAllEvent(
 }
 
 export function createBranchContentMintedEvent(
+  rootTokenId: BigInt,
   tokenId: BigInt,
   ipId: Address,
   creator: Address,
@@ -67,6 +68,12 @@ export function createBranchContentMintedEvent(
 
   branchContentMintedEvent.parameters = new Array()
 
+  branchContentMintedEvent.parameters.push(
+    new ethereum.EventParam(
+      "rootTokenId",
+      ethereum.Value.fromUnsignedBigInt(rootTokenId)
+    )
+  )
   branchContentMintedEvent.parameters.push(
     new ethereum.EventParam(
       "tokenId",

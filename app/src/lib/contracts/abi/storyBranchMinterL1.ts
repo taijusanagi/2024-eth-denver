@@ -22,6 +22,11 @@ export const storyBranchMinterL1Abi = [
         type: "bytes32",
       },
       {
+        internalType: "string",
+        name: "interactScript",
+        type: "string",
+      },
+      {
         internalType: "contract ContentNFT",
         name: "contentNFT_",
         type: "address",
@@ -106,6 +111,13 @@ export const storyBranchMinterL1Abi = [
       },
     ],
     stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "cancelBranchContent",
+    outputs: [],
+    stateMutability: "nonpayable",
     type: "function",
   },
   {

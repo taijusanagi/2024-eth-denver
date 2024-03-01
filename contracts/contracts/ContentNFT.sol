@@ -33,14 +33,15 @@ contract ContentNFT is Ownable, ERC721, ERC1155Holder {
     event branchMinterL1Set(address indexed branchMinterL1, bool status);
     event RootContentMinted(
         uint256 indexed tokenId,
-        address indexed ipId,
-        address indexed creator,
+        address ipId,
+        address creator,
         RootContentLocation rootContentLocation
     );
     event BranchContentMinted(
+        uint256 indexed rootTokenId,
         uint256 indexed tokenId,
-        address indexed ipId,
-        address indexed creator,
+        address ipId,
+        address creator,
         BranchContentLocatioin branchContentLocation
     );
 
@@ -176,7 +177,13 @@ contract ContentNFT is Ownable, ERC721, ERC1155Holder {
 
         this.transferFrom(address(this), creator, tokenId);
 
-        emit BranchContentMinted(tokenId, ipId, creator, branchContentLocation);
+        emit BranchContentMinted(
+            rootTokenId,
+            tokenId,
+            ipId,
+            creator,
+            branchContentLocation
+        );
     }
 
     // ERC1155Holder is required to hold Story Protocol license

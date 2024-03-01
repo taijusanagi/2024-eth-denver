@@ -42,6 +42,7 @@ const ROOT_QUERY = gql`
 const BRANCH_QUERY = gql`
   query {
     branchContentMinteds(orderBy: tokenId, orderDirection: desc) {
+      rootTokenId
       tokenId
       ipId
       creator
@@ -57,7 +58,8 @@ export default function CreatorPage() {
   const signer = useEthersSigner();
   const { openConnectModal } = useConnectModal();
 
-  const { loading, error, data } = useQuery(ROOT_QUERY);
+  const { loading: rootQueryLoading, data: rootQueryResult } = useQuery(ROOT_QUERY);
+  const { loading: branchQueryLoading, data: branchQueryResult } = useQuery(BRANCH_QUERY);
   const { isConnected } = useIsConnected();
 
   const [spriteMode, setSpriteMode] = useState<"notStarted" | "started" | "ended">("notStarted");
@@ -67,15 +69,10 @@ export default function CreatorPage() {
   const [forkedFrom, setForkedFrom] = useState<number>();
 
   const [stories, setStories] = useState<any[]>(mockRootNFTs);
-  // const [stories, setStories] = useState<any[]>([]);
+  const [storyBranches, setStoryBranches] = useState<any[]>([]);
   const [selectedStoryRootIndex, setSelectedStoryRootIndex] = useState<number>();
   const [storyRootContent, setStoryRootContent] = useState("");
 
-  const [storyBranches, setStoryBranches] = useState([
-    "https://placehold.jp/500x500.png",
-    "https://placehold.jp/500x500.png",
-    "https://placehold.jp/500x500.png",
-  ]);
   const [selectedStoryBranchIndex, setSelectedStoryBranchIndex] = useState<number>();
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -142,11 +139,19 @@ export default function CreatorPage() {
   }, [stories, selectedStoryRootIndex]);
 
   useEffect(() => {
-    if (!data) {
+    if (!rootQueryResult) {
       return;
     }
-    setStories(data.rootContentMinteds);
-  }, [loading, data]);
+    setStories(rootQueryResult.rootContentMinteds);
+  }, [rootQueryLoading, rootQueryResult]);
+
+  useEffect(() => {
+    console.log(branchQueryResult);
+    if (!branchQueryResult) {
+      return;
+    }
+    setStoryBranches(branchQueryResult.branchContentMinteds);
+  }, [branchQueryLoading, branchQueryResult]);
 
   useEffect(() => {
     const interval = setInterval(async () => {
@@ -531,44 +536,11 @@ export default function CreatorPage() {
                         </div>
                       </div>
                       {branchContent && <p className="mb-4">{branchContent}</p>}
-
-                      {isBranchContentLoaded && !isStarted && (
-                        <button
-                          className="w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-md font-bold text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none disabled:bg-indigo-300 disabled:cursor-not-allowed disabled:opacity-50"
-                          disabled={!storyRootContent}
-                          onClick={async () => {
-                            const tokenId = stories[selectedStoryRootIndex].tokenId;
-                            const contract = new ethers.Contract(
-                              storyBranchMinterL1Address,
-                              storyBranchMinterL1Abi,
-                              signer
-                            );
-                            const tx = await contract.startBranchContent(tokenId);
-                            console.log(tx);
-                          }}
-                        >
-                          Start
-                        </button>
-                      )}
-                      {isBranchContentLoaded && isStarted && (
-                        <div>
-                          <textarea
-                            rows={4}
-                            className="block w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-sm disabled:bg-gray-200 disabled:border-gray-200 disabled:text-gray-500 disabled:cursor-not-allowed mb-4"
-                            value={interactionContent}
-                            disabled={isWaitingOracleResponse || !isUserInteractionRequired}
-                            onChange={(e) => {
-                              setInteractionContent(e.target.value);
-                            }}
-                          ></textarea>
+                      <div className="space-y-4">
+                        {isBranchContentLoaded && !isStarted && (
                           <button
-                            className="w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none disabled:bg-indigo-300 disabled:cursor-not-allowed disabled:opacity-50"
-                            disabled={
-                              isWaitingOracleResponse ||
-                              !isUserInteractionRequired ||
-                              !interactionContent ||
-                              interactionContent.length > 120
-                            }
+                            className="w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-md font-bold text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none disabled:bg-indigo-300 disabled:cursor-not-allowed disabled:opacity-50"
+                            disabled={!storyRootContent}
                             onClick={async () => {
                               const tokenId = stories[selectedStoryRootIndex].tokenId;
                               const contract = new ethers.Contract(
@@ -576,15 +548,83 @@ export default function CreatorPage() {
                                 storyBranchMinterL1Abi,
                                 signer
                               );
-                              const tx = await contract.interactFromCreator(interactionContent);
+                              const tx = await contract.startBranchContent(tokenId);
                               console.log(tx);
-                              setInteractionContent("");
                             }}
                           >
-                            Send
+                            Start
                           </button>
-                        </div>
-                      )}
+                        )}
+                        {isBranchContentLoaded && isStarted && (
+                          <div>
+                            <textarea
+                              rows={4}
+                              className="block w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-sm disabled:bg-gray-200 disabled:border-gray-200 disabled:text-gray-500 disabled:cursor-not-allowed mb-4"
+                              value={interactionContent}
+                              disabled={isWaitingOracleResponse || !isUserInteractionRequired}
+                              onChange={(e) => {
+                                setInteractionContent(e.target.value);
+                              }}
+                            ></textarea>
+                            <button
+                              className="w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-md font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none disabled:bg-indigo-300 disabled:cursor-not-allowed disabled:opacity-50"
+                              disabled={
+                                isWaitingOracleResponse ||
+                                !isUserInteractionRequired ||
+                                !interactionContent ||
+                                interactionContent.length > 120
+                              }
+                              onClick={async () => {
+                                const tokenId = stories[selectedStoryRootIndex].tokenId;
+                                const contract = new ethers.Contract(
+                                  storyBranchMinterL1Address,
+                                  storyBranchMinterL1Abi,
+                                  signer
+                                );
+                                const tx = await contract.interactFromCreator(interactionContent);
+                                console.log(tx);
+                                setInteractionContent("");
+                              }}
+                            >
+                              Send
+                            </button>
+                          </div>
+                        )}
+                        {isBranchContentLoaded && isStarted && (
+                          <div className="flex space-x-4">
+                            <button
+                              className="w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-md font-medium text-black bg-gray-300 hover:bg-gray-400 focus:outline-none disabled:bg-gray-200 disabled:cursor-not-allowed disabled:opacity-50"
+                              disabled={!storyRootContent}
+                              onClick={async () => {
+                                const contract = new ethers.Contract(
+                                  storyBranchMinterL1Address,
+                                  storyBranchMinterL1Abi,
+                                  signer
+                                );
+                                const tx = await contract.cancelBranchContent();
+                                console.log(tx);
+                              }}
+                            >
+                              Cancel
+                            </button>
+                            <button
+                              className="w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-md font-bold text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none disabled:bg-indigo-300 disabled:cursor-not-allowed disabled:opacity-50"
+                              disabled={!storyRootContent}
+                              onClick={async () => {
+                                const contract = new ethers.Contract(
+                                  storyBranchMinterL1Address,
+                                  storyBranchMinterL1Abi,
+                                  signer
+                                );
+                                const tx = await contract.endBranchContent();
+                                console.log(tx);
+                              }}
+                            >
+                              Publish
+                            </button>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   )}
                 </div>

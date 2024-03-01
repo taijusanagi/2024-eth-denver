@@ -53,6 +53,7 @@ export function handleBranchContentMinted(
   let entity = new BranchContentMinted(
     event.transaction.hash.concatI32(event.logIndex.toI32())
   )
+  entity.rootTokenId = event.params.rootTokenId
   entity.tokenId = event.params.tokenId
   entity.ipId = event.params.ipId
   entity.creator = event.params.creator

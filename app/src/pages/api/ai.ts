@@ -61,5 +61,5 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     temperature: 0,
   });
   console.log(chatCompletion.choices[0].message.content);
-  return res.json({ content: chatCompletion.choices[0].message.content, error: { code: "ok", message: "no" } });
+  return res.json({ content: chatCompletion.choices[0].message.content });
 }
