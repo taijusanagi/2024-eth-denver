@@ -17,7 +17,6 @@ const openai = new OpenAI({
 });
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<any>) {
-  res.setHeader("Cache-Control", "s-maxage=60, stale-while-revalidate");
   const { chainId, branchContentId } = req.query;
   if (!chainId || !branchContentId || typeof chainId != "string" || typeof branchContentId != "string") {
     return res.status(400).json({ error: "Chain ID or branchContentId not provided" });
