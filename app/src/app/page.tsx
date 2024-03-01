@@ -25,7 +25,7 @@ import { IERC5018Abi } from "@/lib/ethstorage";
 const namePostfixLength = 18;
 const defaultPolicyId = 1;
 const defaultLicenseAmount = 100;
-const spriteDuration = 1500;
+const spriteDuration = 2000;
 
 const ROOT_QUERY = gql`
   query {
@@ -62,7 +62,7 @@ export default function CreatorPage() {
   const { loading: branchQueryLoading, data: branchQueryResult } = useQuery(BRANCH_QUERY);
   const { isConnected } = useIsConnected();
 
-  const [spriteMode, setSpriteMode] = useState<"notStarted" | "started" | "ended">("notStarted");
+  const [spriteMode, setSpriteMode] = useState<"notStarted" | "started" | "fading" | "ended">("notStarted");
   const [mode, setMode] = useState<
     "viewStoryRoots" | "createStoryRoot" | "viewStoryRoot" | "viewStoryBranch" | "createStoryBranch"
   >("viewStoryRoots");
@@ -103,13 +103,17 @@ export default function CreatorPage() {
 
   const [interactionContent, setInteractionContent] = useState("");
 
+  const opacityClass = spriteMode === "started" ? "opacity-100" : "opacity-0";
   useEffect(() => {
-    if (process.env.NEXT_PUBLIC_DISABLE_SPRITE == "true") {
+    if (process.env.NEXT_PUBLIC_DISABLE_SPRITE === "true") {
       setSpriteMode("ended");
     } else {
       setSpriteMode("started");
       setTimeout(() => {
-        setSpriteMode("ended");
+        setSpriteMode("fading"); // Start fading out after the duration
+        setTimeout(() => {
+          setSpriteMode("ended"); // Completely hide after the fade out
+        }, 1000); // Assuming the fade out duration is 1000ms
       }, spriteDuration);
     }
   }, []);
@@ -180,9 +184,13 @@ export default function CreatorPage() {
 
   return (
     <main className="min-h-screen flex flex-col bg-gradient-to-br from-violet-300 to-pink-300">
-      {spriteMode == "started" && (
-        <div className="w-full h-screen flex justify-center items-center">
-          <p className="text-white text-sm">Sprite Animations goes here...</p>
+      {(spriteMode === "started" || spriteMode === "fading") && (
+        <div
+          className={`w-full h-screen flex justify-center items-center transition-opacity duration-1000 ease-in-out ${
+            spriteMode === "started" ? "opacity-100" : "opacity-0"
+          }`}
+        >
+          <img src="./assets/sprite.gif" className="h-80 mx-auto items-center" />
         </div>
       )}
       {spriteMode == "ended" && (
@@ -207,12 +215,12 @@ export default function CreatorPage() {
           </header>
           <div className="flex flex-col justify-center items-center pt-4 pb-12 px-4">
             {!isConnected && (
-              <div className="fixed inset-20 flex justify-center items-center">
-                <div className="text-center max-w-2xl">
-                  <img src="./assets/hero.png" className="h-60 mx-auto mb-4" />
+              <div className="fixed inset-y-20 flex justify-center items-center">
+                <div className="text-center w-full max-w-2xl px-4">
+                  <img src="./assets/hero.png" className="h-40 mx-auto mb-4" />
                   <p className="text-white font-medium text-md mb-8">
                     2 lines of explanation2 lines of explanation2 lines of explanation2 lines of explanation3 lines of
-                    explanation2 lines of explanation2 lines of explanation2
+                    explanation2 lines of explanation2
                   </p>
                   <button
                     className="w-40 py-2 px-4 border border-transparent rounded-md shadow-sm text-md font-bold text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none disabled:bg-indigo-300 disabled:cursor-not-allowed disabled:opacity-50"
