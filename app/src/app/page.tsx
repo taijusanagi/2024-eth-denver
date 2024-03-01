@@ -596,6 +596,7 @@ export default function CreatorPage() {
                                 {loadingMessageFromESNode}
                               </p>
                             )}
+
                             {storyRootContent == errorMessageFromESNode && (
                               <p className="text-center py-2 text-sm text-red-500 bg-red-100 rounded-lg">
                                 {errorMessageFromESNode}

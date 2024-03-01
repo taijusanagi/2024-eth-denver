@@ -50,7 +50,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
   }
 
   // add 1000 blank prefix to fix bug in eth storage data fetch
-  const content = `${req.body.content}` + " ".repeat(1000);
+  // const content = `${req.body.content}` + " ".repeat(1000);
+  const content = `${req.body.content}`;
   const name = req.body.name;
   console.log("content.length", content.length);
   // console.log(content);
