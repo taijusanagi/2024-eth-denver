@@ -91,9 +91,9 @@ export default function CreatorPage() {
   const { branchContent, isStarted, isUserInteractionRequired, isWaitingOracleResponse } = useMemo(() => {
     let branchContent = "";
     oracleResponses.forEach((response, index) => {
-      branchContent += `${response}<br/><br>`; // Add oracle response
+      branchContent += `**StoryTelller:**\n\n${response}\n\n\n\n`; // Add oracle response
       if (index < userInteractions.length) {
-        branchContent += `## User <br/>${userInteractions[index]}<br/><br/><br/>`; // Add user interaction if it exists
+        branchContent += `**User:**\n\n${userInteractions[index]}\n\n\n\n`; // Add user interaction if it exists
       }
     });
     return {
@@ -557,7 +557,13 @@ export default function CreatorPage() {
                           </Markdown>
                         </div>
                       </div>
-                      {branchContent && <Markdown className="mb-4 md-content">{branchContent}</Markdown>}
+
+                      {branchContent && (
+                        <div className="py-4">
+                          <Markdown className="mb-4 md-content">{branchContent}</Markdown>{" "}
+                        </div>
+                      )}
+
                       <div className="space-y-4">
                         {!isBranchContentLoaded && (
                           <div className="flex justify-center items-center pt-4">
