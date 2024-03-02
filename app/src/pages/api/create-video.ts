@@ -40,5 +40,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       noise_schedule,
     },
   });
+  console.log("prediction", prediction);
   return res.json({ predictionId: prediction.id });
 }

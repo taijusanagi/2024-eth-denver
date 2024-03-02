@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { ConnectButton, useConnectModal } from "@rainbow-me/rainbowkit";
 import { MdArrowBackIos } from "react-icons/md";
 import { AiOutlineLoading } from "react-icons/ai";
@@ -110,7 +110,6 @@ export default function CreatorPage() {
     setIsModalOpen(true);
   };
 
-  // dev
   const [policyId] = useState(defaultPolicyId);
   const [licenceAmount] = useState(defaultLicenseAmount);
   const [creatingStoryRootName, setCreatingStoryRootName] = useState("");
@@ -214,8 +213,6 @@ export default function CreatorPage() {
     setStoryBranches(branchQueryResult.branchContentMinteds);
   }, [branchQueryLoading, branchQueryResult]);
 
-  const [publishedBranchContent, setPublishedBranchContent] = useState("");
-
   useEffect(() => {
     const interval = setInterval(async () => {
       if (mode == "createStoryBranch") {
@@ -245,6 +242,25 @@ export default function CreatorPage() {
     };
   }, [mode]);
 
+  const [branchOraleResponses, setBranchOraleResponses] = useState<string[]>([]);
+  const [branchUserInteractions, setBranchUserInteractions] = useState<string[]>([]);
+
+  const { branchPublishedContent } = useMemo(() => {
+    let text = "";
+    branchOraleResponses.forEach((response, index) => {
+      text += `**StoryTelller:**\n\n${
+        response ? response : "Chainlink Functions computation failed, please try again."
+      }\n\n\n\n`; // Add oracle response
+      if (index < branchUserInteractions.length) {
+        text += `**User:**\n\n${branchUserInteractions[index]}\n\n\n\n`; // Add user interaction if it exists
+      }
+    });
+    // console.log("published branch updated", text);
+    return {
+      branchPublishedContent: text,
+    };
+  }, [branchOraleResponses, branchUserInteractions]);
+
   useEffect(() => {
     const interval = setInterval(async () => {
       if (mode == "viewStoryBranch" && selectedStoryBranchIndex != undefined && storyBranches.length > 0) {
@@ -253,15 +269,16 @@ export default function CreatorPage() {
           storyBranchMinterL1Abi,
           signer
         );
+
         const branchContentId = storyBranches[selectedStoryBranchIndex].branchContentLocation_index;
-        const content = await contract.read(branchContentId);
-        console.log("published branch content updated", content);
-        setPublishedBranchContent(content);
-        // }
+        const [, oracleResponses, userInteractions] = await contract.getContent(branchContentId);
+        setBranchOraleResponses(oracleResponses);
+        setBranchUserInteractions(userInteractions);
       }
     }, 2500);
     return () => {
-      setPublishedBranchContent("");
+      setBranchOraleResponses([]);
+      setBranchUserInteractions([]);
       clearInterval(interval);
     };
   }, [mode, selectedStoryBranchIndex, storyBranches]);
@@ -447,6 +464,170 @@ export default function CreatorPage() {
     );
   };
 
+  const CreateVideoModal = ({ oracleResponses }: any) => {
+    const [style, setStyle] = useState("dark fantasy");
+    const [isStartVideo, setIsStartVideo] = useState(false);
+    const [log, setLog] = useState("");
+    const [output, setOutput] = useState("out");
+
+    const logRef = useRef(null);
+    useEffect(() => {
+      if (logRef.current) {
+        (logRef.current as any).scrollTop = (logRef.current as any).scrollHeight;
+      }
+    }, [log]);
+
+    return (
+      <div>
+        <div className="mb-4">
+          <div className="flex justify-between items-center">
+            <h3 className="text-lg leading-6 font-medium text-gray-900">Create AI video with Livepeer</h3>
+            <button onClick={() => setIsModalOpen(false)} className="text-3xl text-gray-400 hover:text-gray-500 pb-2">
+              &times;
+            </button>
+          </div>
+        </div>
+        {!output && (
+          <>
+            <div className="mb-4">
+              <div className="flex justify-between mb-2">
+                <label className="block text-sm font-medium text-gray-700">Style</label>
+              </div>
+              <input
+                type="text"
+                onChange={(e) => {
+                  setStyle(e.target.value);
+                }}
+                value={style}
+                className="mt-1 block w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-sm disabled:bg-gray-200 disabled:border-gray-200 disabled:text-gray-500 disabled:cursor-not-allowed"
+              />
+            </div>
+            <div className="mb-4">
+              <div className="flex justify-between mb-2">
+                <label className="block text-sm font-medium text-gray-700">AI Tool</label>
+              </div>
+              <input
+                type="text"
+                className="mt-1 block w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-sm disabled:bg-gray-200 disabled:border-gray-200 disabled:text-gray-500 disabled:cursor-not-allowed"
+                value={"Deforum"}
+                disabled
+              />
+            </div>
+            {isStartVideo && !log && (
+              <div className="flex justify-center items-center py-4">
+                <AiOutlineLoading className="animate-spin text-3xl text-indigo-600" />
+              </div>
+            )}
+            {log && (
+              <div className="py-4">
+                <pre
+                  ref={logRef}
+                  className="p-2 rounded border border-gray-200 bg-gray-50 overflow-x-auto overflow-y-auto max-h-60"
+                  style={{ fontSize: "10px" }}
+                >
+                  <code className="break-all">{log}</code>
+                </pre>
+              </div>
+            )}
+            <div className="flex flex-col">
+              <button
+                disabled={isStartVideo}
+                className="mt-4 w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-md font-bold text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none disabled:bg-indigo-300 disabled:cursor-not-allowed disabled:opacity-50"
+                onClick={async () => {
+                  setIsStartVideo(true);
+                  const stories = branchOraleResponses.map((text) => {
+                    text = text.replace(/-+/g, "");
+                    text = text.replace(/\n+/g, " ");
+                    text = text.replace(/!\[.*?\]\(.*?\)/g, "");
+                    return text.trim();
+                  });
+                  const url = `${process.env.NEXT_PUBLIC_APP_URL}/api/create-video`;
+                  const options = {
+                    method: "POST",
+                    headers: {
+                      "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                      style: "dark fantasy", // fixed value for demo,
+                      stories,
+                    }),
+                  };
+                  const data = await fetch(url, options)
+                    .then((response) => {
+                      if (!response.ok) {
+                        return response.text().then((text) => {
+                          throw new Error(text);
+                        });
+                      }
+                      return response.json();
+                    })
+                    .catch((error) => {
+                      console.error("Error:", error);
+                    });
+                  if (!data) {
+                    return;
+                  }
+                  console.log(data);
+                  const { predictionId } = data;
+                  const intervalId = setInterval(async () => {
+                    const queryParams = new URLSearchParams({ predictionId }).toString();
+                    const url = `${process.env.NEXT_PUBLIC_APP_URL}/api/fetch-video?${queryParams}`;
+                    const options = {
+                      method: "GET",
+                      headers: {
+                        "Content-Type": "application/json",
+                      },
+                    };
+                    const data = await fetch(url, options)
+                      .then((response) => {
+                        if (!response.ok) {
+                          return response.text().then((text) => {
+                            throw new Error(text);
+                          });
+                        }
+                        return response.json();
+                      })
+                      .catch((error) => {
+                        console.error("Error:", error);
+                      });
+                    if (!data) {
+                      return;
+                    }
+                    const { logs, output } = data;
+                    setLog(logs);
+                    if (output) {
+                      clearInterval(intervalId);
+                      setOutput(output);
+                    }
+                  }, 500);
+                }}
+              >
+                Create
+              </button>
+            </div>
+          </>
+        )}
+        {output && (
+          <div className="flex flex-col items-center justify-center mt-4">
+            <div className="w-full max-w-4xl mx-auto bg-black rounded-lg overflow-hidden" style={{ height: "20rem" }}>
+              <video controls className="w-auto h-full mx-auto" src={output} style={{ maxHeight: "100%" }}>
+                Your browser does not support the video tag.
+              </video>
+            </div>
+            <button
+              className="w-full mt-4 py-2 px-4 border border-transparent rounded-md shadow-sm text-md font-bold text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none"
+              onClick={() => {
+                // Implement your upload to Livepeer logic here
+              }}
+            >
+              Upload to Livepeer
+            </button>
+          </div>
+        )}
+      </div>
+    );
+  };
+
   return (
     <main className="min-h-screen flex flex-col bg-gradient-to-br from-violet-300 to-pink-300">
       {(spriteMode === "started" || spriteMode === "fading") && (
@@ -483,9 +664,8 @@ export default function CreatorPage() {
               <div className="fixed inset-y-20 flex justify-center items-center">
                 <div className="text-center w-full max-w-2xl px-4">
                   <img src="./assets/hero.png" className="h-40 mx-auto mb-4" />
-                  <p className="text-white font-medium text-md mb-8">
-                    2 lines of explanation2 lines of explanation2 lines of explanation2 lines of explanation3 lines of
-                    explanation2 lines of explanation2
+                  <p className="text-white font-bold text-2xl mb-8">
+                    {`Fully on-chain interactive content generatioin incentivised by IPFi`}
                   </p>
                   <button
                     className="w-40 py-2 px-4 border border-transparent rounded-md shadow-sm text-md font-bold text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none disabled:bg-indigo-300 disabled:cursor-not-allowed disabled:opacity-50"
@@ -584,6 +764,19 @@ export default function CreatorPage() {
                       </div>
                       <div className="mb-4">
                         <div className="flex justify-between mb-2">
+                          <label className="block text-sm font-medium text-gray-700">Content Prompt</label>
+                        </div>
+                        <textarea
+                          rows={20}
+                          className="block w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-sm disabled:bg-gray-200 disabled:border-gray-200 disabled:text-gray-500 disabled:cursor-not-allowed"
+                          value={creatingStoryRootContent}
+                          onChange={(e) => {
+                            setCreatingStoryRootContent(e.target.value);
+                          }}
+                        ></textarea>
+                      </div>
+                      <div className="mb-4">
+                        <div className="flex justify-between mb-2">
                           <label className="block text-sm font-medium text-gray-700">Story Protocol Policy ID</label>
                         </div>
                         <input
@@ -605,19 +798,6 @@ export default function CreatorPage() {
                           value={licenceAmount}
                           disabled
                         />
-                      </div>
-                      <div className="mb-4">
-                        <div className="flex justify-between mb-2">
-                          <label className="block text-sm font-medium text-gray-700">Content Prompt</label>
-                        </div>
-                        <textarea
-                          rows={20}
-                          className="block w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-sm disabled:bg-gray-200 disabled:border-gray-200 disabled:text-gray-500 disabled:cursor-not-allowed"
-                          value={creatingStoryRootContent}
-                          onChange={(e) => {
-                            setCreatingStoryRootContent(e.target.value);
-                          }}
-                        ></textarea>
                       </div>
                       <div>
                         <button
@@ -842,9 +1022,12 @@ export default function CreatorPage() {
                             }}
                           />
                           <button
-                            className="block text-sm px-3 md:px-4 py-1 md:py-2 font-bold text-indigo-600 rounded-md hover:opacity-75 outline"
+                            className="block text-sm px-3 md:px-4 py-1 md:py-2 font-bold text-indigo-600 rounded-md hover:opacity-75 outline disabled:cursor-not-allowed disabled:opacity-50"
+                            disabled={branchOraleResponses.length == 0}
                             onClick={() => {
+                              // console.log(oracleResponses);
                               // setMode("createStoryRoot");
+                              openModal(<CreateVideoModal oracleResponses={branchOraleResponses} />);
                             }}
                           >
                             Create AI Video
@@ -864,13 +1047,13 @@ export default function CreatorPage() {
                               Content: web3://{storyBranchMinterL1Address}:11155111/read/
                               {storyBranches[selectedStoryRootIndex].tokenId}
                             </p>
-                            {!publishedBranchContent && (
+                            {!branchPublishedContent && (
                               <p className="text-center py-2 text-sm text-blue-500 bg-blue-100 rounded-lg">
                                 Loading data from contract...
                               </p>
                             )}
-                            {publishedBranchContent && (
-                              <Markdown className="md-content">{publishedBranchContent}</Markdown>
+                            {branchPublishedContent && (
+                              <Markdown className="md-content">{branchPublishedContent}</Markdown>
                             )}
                           </div>
                         </div>

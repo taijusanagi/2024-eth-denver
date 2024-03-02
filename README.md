@@ -1,4 +1,6 @@
-# 2024-eth-denver
+# Story Telller
+
+Fully on-chain interactive content generatioin & incentivised by IPFi.
 
 ## Chainlink Integration
 
