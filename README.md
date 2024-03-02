@@ -42,7 +42,7 @@ The Graph tracks NFTs created within the gaming smart contract, simplifying deve
 
 ## Links
 
-### Live APp
+### Live App
 
 https://2024-eth-denver.vercel.app/
 
