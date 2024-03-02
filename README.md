@@ -1,11 +1,11 @@
-# Story Telller
+# StoryTelller
 
 ![create-branch](./docs/screenshots/create-branch.png)
 
 ## Tagline
 
-On-chain interactive content generatioin and incentivised by IPFi.
-Effortless and Engaging Interactive Content Creation, Automatically Integrated with an IP Registry.
+Revolutionize gaming with StoryTelller: Create and engage with on-chain interactive content, seamlessly managed as IP.
+Discover the future of gamified digital storytelling.
 
 ## The problem it solves
 
@@ -14,7 +14,7 @@ We believe the best crypto IP emerges from bottom-up content, exemplified by Loo
 Yet, content creation is challenging for many, and there’s no system for tracking user interactions.
 Thus, a copilot and IP registry are needed to support bottom-up IP development.
 
-StoryTeller addresses this by offering a ChatGPT-powered gaming prompt registry. Users interact with prompts on-chain, and such content is archived using Story Protocol as IP, serving as the gateway to IP Finance, which incentivizes creators.
+StoryTelller addresses this by offering a ChatGPT-powered gaming prompt registry. Users interact with prompts on-chain, and such content is archived using Story Protocol as IP, serving as the gateway to IP Finance, which incentivizes creators.
 
 ## Technologies we used
 
