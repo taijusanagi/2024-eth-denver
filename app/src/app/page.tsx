@@ -89,16 +89,15 @@ export default function CreatorPage() {
   const [storyRootContent, setStoryRootContent] = useState("");
 
   //stories[selectedStoryRootIndex].tokenId;
-  const [selectedRootTokenId, setSelectedRootTokenId] = useState("0");
+  const [selectedRootTokenId, setSelectedRootTokenId] = useState();
 
   // console.log("selectedRootTokenId", selectedRootTokenId);
-
   const {
     loading: branchQueryLoading,
     data: branchQueryResult,
     refetch: refetchBranch,
   } = useQuery(BRANCH_QUERY, {
-    variables: { rootTokenId: "0" }, // Pass variable to query
+    variables: { rootTokenId: selectedRootTokenId }, // Pass variable to query
   });
 
   // console.log("result", branchQueryResult);
@@ -172,6 +171,7 @@ export default function CreatorPage() {
       return;
     }
     const story = stories[selectedStoryRootIndex];
+    setSelectedRootTokenId(story.tokenId.toString());
     // access eth storage node to handle blob data
     const provider = new ethers.providers.JsonRpcProvider(sepoliaEthereumStorageNodeRPC);
     const contract = new ethers.Contract(story.rootContentLocation_directory, IERC5018Abi, provider);
@@ -420,6 +420,7 @@ export default function CreatorPage() {
           onClick={() => {
             refetchRoot();
             setMode("viewStoryRoots");
+            setIsModalOpen(false);
           }}
         >
           Close
@@ -465,12 +466,12 @@ export default function CreatorPage() {
   };
 
   const CreateVideoModal = ({ oracleResponses }: any) => {
-    const { reward } = useReward("rewardId", "confetti");
+    const { reward } = useReward("rewardId");
 
     const [style, setStyle] = useState("dark fantasy");
     const [isStartVideo, setIsStartVideo] = useState(false);
     const [log, setLog] = useState("");
-    const [output, setOutput] = useState("out");
+    const [output, setOutput] = useState("");
 
     const logRef = useRef(null);
     useEffect(() => {
@@ -1027,7 +1028,7 @@ export default function CreatorPage() {
                       </div>
                     </div>
                   )}
-                  {mode == "viewStoryBranch" && selectedStoryRootIndex != undefined && (
+                  {mode == "viewStoryBranch" && selectedStoryBranchIndex != undefined && (
                     <div>
                       <div className="flex justify-between mb-4">
                         <h2 className="text-xl md:text-4xl font-semibold text-gray-800">View Story Branch</h2>
@@ -1055,14 +1056,14 @@ export default function CreatorPage() {
                         <div className="w-full py-6 px-4 md:px-6 rounded-lg border border-gray-200 shadow-lg transition duration-300 ease-in-out overflow-hidden">
                           <div className="flex flex-col">
                             <p className="text-lg font-semibold text-gray-800 mb-2">
-                              TokenId: {storyBranches[selectedStoryRootIndex].tokenId}
+                              TokenId: {storyBranches[selectedStoryBranchIndex].tokenId}
                             </p>
                             <p className="text-sm text-gray-500 mb-2 overflow-hidden whitespace-nowrap overflow-ellipsis">
-                              Story Protocol IP ID: {storyBranches[selectedStoryRootIndex].ipId}
+                              Story Protocol IP ID: {storyBranches[selectedStoryBranchIndex].ipId}
                             </p>
                             <p className="text-sm text-gray-500 overflow-hidden whitespace-nowrap overflow-ellipsis mb-4">
                               Content: web3://{storyBranchMinterL1Address}:11155111/read/
-                              {storyBranches[selectedStoryRootIndex].tokenId}
+                              {storyBranches[selectedStoryBranchIndex].branchContentLocation_index}
                             </p>
                             {!branchPublishedContent && (
                               <p className="text-center py-2 text-sm text-blue-500 bg-blue-100 rounded-lg">

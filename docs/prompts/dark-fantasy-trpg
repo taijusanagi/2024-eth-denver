@@ -28,7 +28,7 @@ Please always respond using the following format to replay; your response is alw
 Please always respond using the following format to replay; your response is always in markdown format.
 
 - Please replace the area in the location by replacing the area slug
-- Please add a description of where the user is, and try to describe the detail of the image as user can visualize it
+- Please add a description of where the user is, and try to describe the detail of the image as user can visualize it with around 160 character
 
 Do not make response size exceed 256 bytes.
 
@@ -36,4 +36,4 @@ Do not make response size exceed 256 bytes.
 
 ![image](https://2024-eth-denver.vercel.app/trpg/${area}.png)
 
-<description here around 180 characters>
+<description here around 160 characters>

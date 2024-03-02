@@ -2,22 +2,20 @@
 
 Fully on-chain interactive content generatioin & incentivised by IPFi.
 
-## Chainlink Integration
+## Tagline
 
-https://functions.chain.link/sepolia/2020
+## Description
 
-## ETHStorage Integration
+## The problem it solves
 
-https://sepolia.blobscan.com/
+## Technologies we used
 
-## The Graph Integration
+### Asset Management
 
-https://api.studio.thegraph.com/proxy/66919/content-nft-2/v0.0.1/graphql
+### Content Generation
 
-## Development
+### UX
 
-### When contract upgrade
+## Links
 
-- update the graph
-- update consumer
-- update app/src/lib/contract/index.ts addresses
+## Video Demo
