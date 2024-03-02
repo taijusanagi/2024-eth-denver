@@ -6,7 +6,7 @@ import { MdArrowBackIos } from "react-icons/md";
 import { AiOutlineLoading } from "react-icons/ai";
 import Markdown from "react-markdown";
 import { GiReceiveMoney } from "react-icons/gi";
-
+import { useReward } from "react-rewards";
 import { GiTeamIdea } from "react-icons/gi";
 import { TbLicense } from "react-icons/tb";
 import { FaMoneyBillWave } from "react-icons/fa";
@@ -465,6 +465,8 @@ export default function CreatorPage() {
   };
 
   const CreateVideoModal = ({ oracleResponses }: any) => {
+    const { reward } = useReward("rewardId", "confetti");
+
     const [style, setStyle] = useState("dark fantasy");
     const [isStartVideo, setIsStartVideo] = useState(false);
     const [log, setLog] = useState("");
@@ -476,6 +478,10 @@ export default function CreatorPage() {
         (logRef.current as any).scrollTop = (logRef.current as any).scrollHeight;
       }
     }, [log]);
+
+    useEffect(() => {
+      reward();
+    }, [reward]);
 
     return (
       <div>
@@ -614,6 +620,17 @@ export default function CreatorPage() {
                 Your browser does not support the video tag.
               </video>
             </div>
+
+            <div className="flex justify-center items-center py-8 text-2xl space-x-6">
+              <span className="block mt-12">🎉</span>
+              <span className="text-6xl">🥳</span>
+              <span className="block transform scale-x-[-1] mt-12">🎉</span>
+            </div>
+            <span id="rewardId" />
+            <p className="text-sm text-indigo-800 text-center font-medium mb-4 px-4 sm:px-24">
+              Congratuation!! Did you enjoy the journey of Fully on-chain interactive content generatioin & IPFi
+              incentive? Please give us feedback!! Thank you for watching and testing.
+            </p>
             <button
               className="w-full mt-4 py-2 px-4 border border-transparent rounded-md shadow-sm text-md font-bold text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none"
               onClick={() => {
@@ -1065,7 +1082,6 @@ export default function CreatorPage() {
                       <div className="mb-4">
                         <h2 className="text-xl md:text-4xl font-semibold text-gray-800">Create Story Branch</h2>
                       </div>
-                      {/* <h2 className="text-lg font-semibold text-gray-800 mb-4">Create Story Branch</h2> */}
                       <div className="p-4">
                         <div className="w-full py-6 px-4 md:px-6 rounded-lg border border-gray-200 shadow-lg transition duration-300 ease-in-out hover:shadow-xl hover:border-gray-300 overflow-hidden">
                           <div className="flex flex-col">
@@ -1113,13 +1129,11 @@ export default function CreatorPage() {
                           </div>
                         </div>
                       </div>
-
                       {branchContent && (
                         <div className="py-4">
                           <Markdown className="mb-4 md-content">{branchContent}</Markdown>
                         </div>
                       )}
-
                       <div className="space-y-4">
                         {!isBranchContentLoaded && (
                           <div className="flex justify-center items-center pt-4">
@@ -1242,7 +1256,7 @@ export default function CreatorPage() {
                           </div>
                         )}
                         <div className="text-center mt-1">
-                          <p className="text-gray-400 font-bold text-xs">
+                          <p className="text-gray-400 font-medium text-xs">
                             {!isBranchContentLoaded ? "Loading the on-chain TRPG interaction history..." : branchLog}
                           </p>
                         </div>

@@ -1,8 +1,8 @@
 import Replicate from "replicate";
 
 import type { NextApiRequest, NextApiResponse } from "next";
-import { Lekton } from "next/font/google";
-import { use } from "react";
+// import { Lekton } from "next/font/google";
+// import { use } from "react";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse<any>) {
   const { stories, style, image } = req.body as any;
@@ -10,7 +10,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     auth: process.env.REPLICATE_API_TOKEN,
   });
   const fps = 10;
-  const max_frames = 10;
+  const max_frames = 100;
   const width = 512;
   const height = 384;
   const use_init = image != "" && image != undefined && image != null;
