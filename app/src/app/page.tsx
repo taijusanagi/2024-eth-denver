@@ -892,7 +892,7 @@ export default function CreatorPage() {
                         {isBranchContentLoaded && !isStarted && (
                           <button
                             className="mt-4 w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-md font-bold text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none disabled:bg-indigo-300 disabled:cursor-not-allowed disabled:opacity-50"
-                            disabled={!storyRootContent}
+                            disabled={!storyRootContent || branchLog != messageForWaitingUserInteraction}
                             onClick={async () => {
                               const tokenId = stories[selectedStoryRootIndex].tokenId;
                               const contract = new ethers.Contract(
@@ -966,6 +966,10 @@ export default function CreatorPage() {
                                   signer
                                 );
                                 const tx = await contract.cancelBranchContent();
+                                setBranchLog(messageForWaitingTxConfirmation);
+                                await tx.wait();
+                                setBranchLog(messageForWaitingOracleResponse);
+                                setMode("viewStoryRoot");
                                 console.log(tx);
                               }}
                             >
@@ -985,6 +989,10 @@ export default function CreatorPage() {
                                   signer
                                 );
                                 const tx = await contract.endBranchContent();
+                                setBranchLog(messageForWaitingTxConfirmation);
+                                await tx.wait();
+                                setBranchLog(messageForWaitingOracleResponse);
+                                setMode("viewStoryRoot");
                                 console.log(tx);
                               }}
                             >
