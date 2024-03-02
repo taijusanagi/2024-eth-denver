@@ -220,7 +220,9 @@ export default function CreatorPage() {
         if (branchContentId.gt(0)) {
           const rootTokenId = await contract.rootTokenIds(branchContentId);
           if (!ethers.BigNumber.from(stories[selectedStoryRootIndex as number].tokenId).eq(rootTokenId)) {
-            throw new Error("You are creating different token, please cancel that or use different account to test.");
+            // throw new Error("You are creating different token, please cancel that or use different account to test.");
+            openModal(() => <GuideModalContent activeRootToken={rootTokenId} />);
+            return;
           }
           const [, oracleResponses, userInteractions] = await contract.getContent(branchContentId);
           setIsBranchContentLoaeded(true);
@@ -380,6 +382,42 @@ export default function CreatorPage() {
         >
           Close
         </button>
+      </div>
+    );
+  };
+
+  const GuideModalContent = ({ activeRootToken }: any) => {
+    return (
+      <div>
+        <div className="mb-4">
+          <div className="flex justify-between items-center">
+            <h3 className="text-lg leading-6 font-medium text-gray-900">Error</h3>
+            <button onClick={() => setIsModalOpen(false)} className="text-3xl text-gray-400 hover:text-gray-500 pb-2">
+              &times;
+            </button>
+          </div>
+        </div>
+        <p className="text-md text-gray-800 mb-2 overflow-hidden whitespace-nowrap overflow-ellipsis">
+          You are creating different token, please cancel or publish that.
+        </p>
+        <div className="flex flex-col">
+          <button
+            className="mt-4 w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-md font-bold text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none disabled:bg-indigo-300 disabled:cursor-not-allowed disabled:opacity-50"
+            // disabled={!allStepsCompleted}
+            onClick={() => {
+              // window.location.reload();
+
+              const rootTokenIndex = stories.findIndex((story) => {
+                return ethers.BigNumber.from(story.tokenId).eq(ethers.BigNumber.from(activeRootToken));
+              });
+              setSelectedStoryRootIndex(rootTokenIndex);
+              setMode("viewStoryRoot");
+              setIsModalOpen(false);
+            }}
+          >
+            Move
+          </button>
+        </div>
       </div>
     );
   };
@@ -862,6 +900,7 @@ export default function CreatorPage() {
                                 storyBranchMinterL1Abi,
                                 signer
                               );
+                              console.log("rooTokenId", tokenId);
                               const tx = await contract.startBranchContent(tokenId);
                               console.log(tx);
                               setBranchLog(messageForWaitingTxConfirmation);
@@ -954,7 +993,7 @@ export default function CreatorPage() {
                           </div>
                         )}
                         <div className="text-center mt-1">
-                          <p className="text-gray-400 font-medium text-xs">
+                          <p className="text-gray-400 font-bold text-xs">
                             {!isBranchContentLoaded ? "Loading the on-chain TRPG interaction history..." : branchLog}
                           </p>
                         </div>
