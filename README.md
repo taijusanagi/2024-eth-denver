@@ -1,6 +1,6 @@
 # Story Telller
 
-![create-branch](./docs/create-branch.png)
+![create-branch](./docs/screenshots/create-branch.png)
 
 ## Tagline
 
