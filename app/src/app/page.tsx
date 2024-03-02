@@ -74,7 +74,7 @@ export default function CreatorPage() {
   const signer = useEthersSigner();
   const { openConnectModal } = useConnectModal();
 
-  const { loading: rootQueryLoading, data: rootQueryResult } = useQuery(ROOT_QUERY);
+  const { loading: rootQueryLoading, data: rootQueryResult, refetch: refetchRoot } = useQuery(ROOT_QUERY);
 
   const { isConnected } = useIsConnected();
 
@@ -96,10 +96,12 @@ export default function CreatorPage() {
   const {
     loading: branchQueryLoading,
     data: branchQueryResult,
-    refetch,
+    refetch: refetchBranch,
   } = useQuery(BRANCH_QUERY, {
     variables: { rootTokenId: "0" }, // Pass variable to query
   });
+
+  // console.log("result", branchQueryResult);
 
   const [selectedStoryBranchIndex, setSelectedStoryBranchIndex] = useState<number>();
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -117,7 +119,7 @@ export default function CreatorPage() {
   const [oracleResponses, setOracleResponses] = useState<string[]>([]);
   const [userInteractions, setUserInteractions] = useState<string[]>([]);
 
-  const [branchLog, setBranchLog] = useState("");
+  const [branchLog, setBranchLog] = useState(messageForWaitingUserInteraction);
 
   const [modalContent, setModalContent] = useState<any>();
 
@@ -212,6 +214,8 @@ export default function CreatorPage() {
     setStoryBranches(branchQueryResult.branchContentMinteds);
   }, [branchQueryLoading, branchQueryResult]);
 
+  const [publishedBranchContent, setPublishedBranchContent] = useState("");
+
   useEffect(() => {
     const interval = setInterval(async () => {
       if (mode == "createStoryBranch") {
@@ -240,6 +244,27 @@ export default function CreatorPage() {
       clearInterval(interval);
     };
   }, [mode]);
+
+  useEffect(() => {
+    const interval = setInterval(async () => {
+      if (mode == "viewStoryBranch" && selectedStoryBranchIndex != undefined && storyBranches.length > 0) {
+        const contract = new ethers.Contract(
+          storyBranches[selectedStoryBranchIndex].branchContentLocation_directory,
+          storyBranchMinterL1Abi,
+          signer
+        );
+        const branchContentId = storyBranches[selectedStoryBranchIndex].branchContentLocation_index;
+        const content = await contract.read(branchContentId);
+        console.log("published branch content updated", content);
+        setPublishedBranchContent(content);
+        // }
+      }
+    }, 2500);
+    return () => {
+      setPublishedBranchContent("");
+      clearInterval(interval);
+    };
+  }, [mode, selectedStoryBranchIndex, storyBranches]);
 
   const CustomImage = ({ src, alt }: any) => {
     return src == "https://2024-eth-denver.vercel.app/trpg/$%7Barea%7D.png" ? undefined : <img src={src} alt={alt} />;
@@ -332,7 +357,6 @@ export default function CreatorPage() {
     );
   };
 
-  const [steps, setSteps] = useState<any>([]);
   const StepModalContent = ({ steps }: any) => {
     const allStepsCompleted = steps.every((step: any) => step.status === "complete");
     return (
@@ -377,7 +401,8 @@ export default function CreatorPage() {
           className="mt-4 w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-md font-bold text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none disabled:bg-indigo-300 disabled:cursor-not-allowed disabled:opacity-50"
           disabled={!allStepsCompleted}
           onClick={() => {
-            window.location.reload();
+            refetchRoot();
+            setMode("viewStoryRoots");
           }}
         >
           Close
@@ -777,28 +802,27 @@ export default function CreatorPage() {
                         {storyBranches.length > 0 && (
                           <label className="block text-sm font-medium text-gray-700 mb-2">Story Branches</label>
                         )}
-                        <div className="grid grid-cols-1 gap-2 break-all">
+                        <div className="grid grid-cols-1 gap-2 break-all p-4">
                           {storyBranches.map((storyBranche, index) => (
                             <div
-                              key={index}
-                              className="w-full p-4 rounded-md shadow-md overflow-hidden cursor-pointer hover:bg-gray-100"
+                              key={`branch_${index}`}
+                              className="w-full py-6 px-4 md:px-6 rounded-lg border border-gray-200 shadow-lg transition duration-300 ease-in-out hover:shadow-xl hover:border-gray-300 cursor-pointer overflow-hidden"
                               onClick={() => {
-                                setSelectedStoryRootIndex(index);
-                                setMode("viewStoryRoot");
+                                setSelectedStoryBranchIndex(index);
+                                setMode("viewStoryBranch");
                               }}
                             >
                               <div className="flex flex-col">
-                                <p className="text-md font-semibold text-gray-600 mb-2">
-                                  {/* {ethers.utils
-                            .toUtf8String(story.rootContentLocation_name)
-                            .substring(
-                              0,
-                              ethers.utils.toUtf8String(story.rootContentLocation_name).length - namePostfixLength
-                            )} */}
+                                <p className="text-lg font-semibold text-gray-800 mb-2">
+                                  TokenId: {storyBranche.tokenId}
                                 </p>
-                                <p className="text-xs text-gray-600 mb-1">Creator: </p>
-                                <h3 className="text-xs text-gray-600 mb-1">Story Protocol IP ID:</h3>
-                                <p className="text-xs text-gray-600">{`Content: web3://${""}:11155111/${""}`}</p>
+                                <p className="text-sm text-gray-500 mb-2 overflow-hidden whitespace-nowrap overflow-ellipsis">
+                                  Story Protocol IP ID: {storyBranche.ipId}
+                                </p>
+                                <p className="text-sm text-gray-500 overflow-hidden whitespace-nowrap overflow-ellipsis">
+                                  Content: web3://{storyBranchMinterL1Address}:11155111/read/
+                                  {storyBranche.tokenId}
+                                </p>
                               </div>
                             </div>
                           ))}
@@ -808,17 +832,48 @@ export default function CreatorPage() {
                   )}
                   {mode == "viewStoryBranch" && selectedStoryRootIndex != undefined && (
                     <div>
-                      <div className="mb-4">
-                        <h2 className="text-lg font-semibold text-gray-800">View Story Branch</h2>
-                      </div>
-                      <div className="mb-4">
-                        <label className="block text-sm font-medium text-gray-700">Story Root</label>
-                        <div className="w-full h-20 mt-2">
-                          <img src={stories[selectedStoryRootIndex]} className="w-full h-full object-cover" />
+                      <div className="flex justify-between mb-4">
+                        <h2 className="text-xl md:text-4xl font-semibold text-gray-800">View Story Branch</h2>
+                        <div className="flex items-center space-x-4">
+                          <GiReceiveMoney
+                            className="text-indigo-600 text-xl hover:opacity-75 cursor-pointer"
+                            onClick={() => {
+                              openModal(() => <IncentiveModal />);
+                            }}
+                          />
+                          <button
+                            className="block text-sm px-3 md:px-4 py-1 md:py-2 font-bold text-indigo-600 rounded-md hover:opacity-75 outline"
+                            onClick={() => {
+                              // setMode("createStoryRoot");
+                            }}
+                          >
+                            Create AI Video
+                          </button>
                         </div>
                       </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700">Story Branch</label>
+                      <div className="p-4">
+                        <div className="w-full py-6 px-4 md:px-6 rounded-lg border border-gray-200 shadow-lg transition duration-300 ease-in-out overflow-hidden">
+                          <div className="flex flex-col">
+                            <p className="text-lg font-semibold text-gray-800 mb-2">
+                              TokenId: {storyBranches[selectedStoryRootIndex].tokenId}
+                            </p>
+                            <p className="text-sm text-gray-500 mb-2 overflow-hidden whitespace-nowrap overflow-ellipsis">
+                              Story Protocol IP ID: {storyBranches[selectedStoryRootIndex].ipId}
+                            </p>
+                            <p className="text-sm text-gray-500 overflow-hidden whitespace-nowrap overflow-ellipsis mb-4">
+                              Content: web3://{storyBranchMinterL1Address}:11155111/read/
+                              {storyBranches[selectedStoryRootIndex].tokenId}
+                            </p>
+                            {!publishedBranchContent && (
+                              <p className="text-center py-2 text-sm text-blue-500 bg-blue-100 rounded-lg">
+                                Loading data from contract...
+                              </p>
+                            )}
+                            {publishedBranchContent && (
+                              <Markdown className="md-content">{publishedBranchContent}</Markdown>
+                            )}
+                          </div>
+                        </div>
                       </div>
                     </div>
                   )}
@@ -856,7 +911,6 @@ export default function CreatorPage() {
                                 {loadingMessageFromESNode}
                               </p>
                             )}
-
                             {storyRootContent == errorMessageFromESNode && (
                               <p className="text-center py-2 text-sm text-red-500 bg-red-100 rounded-lg">
                                 {errorMessageFromESNode}
@@ -879,7 +933,7 @@ export default function CreatorPage() {
 
                       {branchContent && (
                         <div className="py-4">
-                          <Markdown className="mb-4 md-content">{branchContent}</Markdown>{" "}
+                          <Markdown className="mb-4 md-content">{branchContent}</Markdown>
                         </div>
                       )}
 
@@ -913,6 +967,9 @@ export default function CreatorPage() {
                         )}
                         {isBranchContentLoaded && isStarted && (
                           <div>
+                            <div className="flex justify-between mb-2">
+                              <label className="block text-sm font-medium text-gray-700">What to do next?</label>
+                            </div>
                             <textarea
                               rows={4}
                               className="block w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-sm disabled:bg-gray-200 disabled:border-gray-200 disabled:text-gray-500 disabled:cursor-not-allowed mb-4"
@@ -992,6 +1049,7 @@ export default function CreatorPage() {
                                 setBranchLog(messageForWaitingTxConfirmation);
                                 await tx.wait();
                                 setBranchLog(messageForWaitingOracleResponse);
+                                refetchBranch();
                                 setMode("viewStoryRoot");
                                 console.log(tx);
                               }}
