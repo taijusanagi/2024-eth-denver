@@ -49,7 +49,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
   const messages: any = [{ role: "system", content: modifiedRootContent }];
   oracleResponses.forEach((response: string, index: number) => {
     messages.push({ role: "assistant", content: response });
-    messages.push({ role: "user", content: userInteractions[index] });
+    if (userInteractions.length > index) {
+      messages.push({ role: "user", content: userInteractions[index] });
+    }
   });
   console.log(messages);
   const chatCompletion = await openai.chat.completions.create({
