@@ -39,7 +39,6 @@ contract StoryBranchMinterL1 is StoryBranchMinter {
     }
 
     function endBranchContent() public {
-        _endBranchContent(msg.sender);
         uint256 branchContentId = activeBranchContentIds[msg.sender];
         uint256 rootTokenId = rootTokenIds[branchContentId];
         _mintBranch(
@@ -49,6 +48,7 @@ contract StoryBranchMinterL1 is StoryBranchMinter {
             branchContentId,
             msg.sender
         );
+        _endBranchContent(msg.sender);
     }
 
     function cancelBranchContent() public {

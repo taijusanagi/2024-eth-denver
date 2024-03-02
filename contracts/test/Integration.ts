@@ -97,10 +97,17 @@ describe("Integration", function () {
       policyId,
       licenceAmount,
     ]);
-    const rootTokenId = 0;
+    await contentNFT.write.mintRoot([
+      mockFileDirectory.address,
+      ethers.utils.hexlify(ethers.utils.toUtf8Bytes(fileName)),
+      policyId,
+      licenceAmount,
+    ]);
+    const rootTokenId = 1;
     expect(await contentNFT.read.ownerOf([rootTokenId])).to.equal(signerAddress);
     await storyBranchMinterL1.write.startBranchContent([rootTokenId]);
     const contentId = await storyBranchMinterL1.read.activeBranchContentIds([signerAddress]);
+    expect(await storyBranchMinterL1.read.rootTokenIds([contentId])).to.equal(BigInt(rootTokenId));
     const oracleRespond1 = "oracleResponse1";
     await storyBranchMinterL1.write.exposeProcessOracleRespond([contentId, oracleRespond1]);
     const userInteract1 = "userInteraction1";
