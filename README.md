@@ -16,6 +16,14 @@ Thus, a copilot and IP registry are needed to support bottom-up IP development.
 
 StoryTelller addresses this by offering a ChatGPT-powered gaming prompt registry. Users interact with prompts on-chain, and such content is archived using Story Protocol as IP, serving as the gateway to IP Finance, which incentivizes creators.
 
+## Challenges we ran into
+
+Our ambition was to pioneer the next wave of bottom-up intellectual property in the cryptocurrency domain. This involved extensive deliberation to identify the most fitting demonstration for our vision. After considerable discussion, we converged on the idea of integrating ChatGPT within a gaming framework, enabling interaction through blockchain technology.
+
+Subsequently, we identified the essential technologies for our project, notably Story Protocol, ETHStorage, and Chainlink. These protocols became the cornerstone of our product. We dedicated significant time to comprehending and experimenting with Story Protocol and ETHStorage, as well as integrating Chainlink Functions with the ChatGPT API.
+
+Given that these protocols are relatively nascent in the ecosystem, we encountered a scarcity of comprehensive documentation. This led us to seek assistance from the community to resolve specific issues.
+
 ## Technologies we used
 
 ![technical-detail](./docs/technical-detail.png)
