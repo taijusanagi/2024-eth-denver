@@ -11,6 +11,12 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ApolloProvider } from "@apollo/client";
 import apolloClient from "@/lib/apollo-client";
 
+import { LivepeerConfig, createReactClient, studioProvider } from "@livepeer/react";
+
+const client = createReactClient({
+  provider: studioProvider({ apiKey: "519fd658-af78-4dcc-9fe4-46745ea5d65c" }),
+});
+
 const config = getDefaultConfig({
   appName: "App",
   projectId: process.env.NEXT_PUBLIC_PROJECT_ID || "",
@@ -30,7 +36,9 @@ export function Providers({ children }: { children: React.ReactNode }) {
             borderRadius: "medium",
           })}
         >
-          <ApolloProvider client={apolloClient}>{children} </ApolloProvider>
+          <ApolloProvider client={apolloClient}>
+            <LivepeerConfig client={client}>{children}</LivepeerConfig>
+          </ApolloProvider>
         </RainbowKitProvider>
       </QueryClientProvider>
     </WagmiProvider>

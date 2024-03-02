@@ -10,7 +10,7 @@ import { useReward } from "react-rewards";
 import { GiTeamIdea } from "react-icons/gi";
 import { TbLicense } from "react-icons/tb";
 import { FaMoneyBillWave } from "react-icons/fa";
-
+import { useCreateAsset } from "@livepeer/react";
 // import { AiOutlineLoading } from "react-isons/";
 
 import { useAccount } from "wagmi";
@@ -480,7 +480,46 @@ export default function CreatorPage() {
     const [style, setStyle] = useState("dark fantasy");
     const [isStartVideo, setIsStartVideo] = useState(false);
     const [log, setLog] = useState("");
-    const [output, setOutput] = useState("");
+    const [output, setOutput] = useState(
+      "https://replicate.delivery/pbxt/VWHHSwE3FkpJIRuSDZIMF3XYuRMLwAgcbNlYD15ijShzLCnE/out.mp4"
+    );
+
+    const [video, setVideo] = useState<any>();
+
+    useEffect(() => {
+      urlToFile(output, "output.mp4", "video/mp4").then((file) => {
+        setVideo(file as any);
+      });
+    }, [output]);
+
+    const {
+      mutate: createAsset,
+      data: asset,
+      status,
+      progress,
+      error,
+    } = useCreateAsset(
+      video
+        ? {
+            sources: [{ name: video.name, file: video }] as const,
+          }
+        : null
+    );
+
+    useEffect(() => {
+      console.log(asset, status, progress, error);
+    }, [asset, status, progress, error]);
+    const [s, setS] = useState(false);
+
+    async function urlToFile(url: any, filename: any, mimeType: any) {
+      const response = await fetch(url);
+      const blob = await response.blob(); // Get the Blob from the response
+
+      // Step 2: Convert the Blob to a File
+      const file = new File([blob], filename, { type: mimeType });
+
+      return file;
+    }
 
     const logRef = useRef(null);
     useEffect(() => {
@@ -643,8 +682,13 @@ export default function CreatorPage() {
             </p>
             <button
               className="w-full mt-4 py-2 px-4 border border-transparent rounded-md shadow-sm text-md font-bold text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none"
+              disabled={s}
               onClick={() => {
-                // Implement your upload to Livepeer logic here
+                if (!createAsset) {
+                  return;
+                }
+                createAsset();
+                setS(true);
               }}
             >
               Upload to Livepeer
