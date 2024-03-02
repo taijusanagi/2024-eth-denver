@@ -42,7 +42,7 @@ Chainlink's function serves as a gateway to connect smart contracts with artific
 
 ### Livepeer
 
-We have streamlined on-chain game creation and AI video generation with stable diffusion deforum, subsequently uploading it to Livepeer. This process facilitates the registration of the content as derivative NFTs. These videos are easier to share, which is crucial for attracting more users to join the ecosystem
+We have streamlined on-chain game creation and AI video generation with stable diffusion deforum, subsequently uploading it to Livepeer. This process facilitates the registration of the content as derivative NFTs. These videos are easier to share, which is crucial for attracting more users to join the ecosystem.
 
 ### The Graph
 
@@ -64,4 +64,4 @@ https://github.com/taijusanagi/2024-eth-denver
 
 ## Video Demo
 
-TBD
+https://youtu.be/niPgVHuH2jo
