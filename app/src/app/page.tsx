@@ -23,6 +23,7 @@ import {
   contentNFTAbi,
   contentNFTAddress,
   sepoliaEthereumStorageNodeRPC,
+  sepoliaRPC,
   storyBranchMinterL1Abi,
   storyBranchMinterL1Address,
 } from "@/lib/contracts";
@@ -37,6 +38,10 @@ const defaultLicenseAmount = 100;
 const spriteDuration = 1500;
 const loadingMessageFromESNode = "Loading blob data from Ethereum Storage Node...";
 const errorMessageFromESNode = "Failed to load blob data from Ethereum Storage Node, please try again later.";
+
+const messageForWaitingUserInteraction = "Please interact with the on-chain AI based TRPG to continue!";
+const messageForWaitingTxConfirmation = "Waiting for interact transaction confirmation...";
+const messageForWaitingOracleResponse = "Waiting for AI response by Chainlink Functions...";
 
 const ROOT_QUERY = gql`
   query {
@@ -112,7 +117,9 @@ export default function CreatorPage() {
   const [oracleResponses, setOracleResponses] = useState<string[]>([]);
   const [userInteractions, setUserInteractions] = useState<string[]>([]);
 
-  const [modalContent, setModalContent] = useState<any>(() => <p>Hello world!</p>);
+  const [branchLog, setBranchLog] = useState("");
+
+  const [modalContent, setModalContent] = useState<any>();
 
   const { branchContent, isStarted, isUserInteractionRequired, isWaitingOracleResponse } = useMemo(() => {
     let branchContent = "";
@@ -131,6 +138,15 @@ export default function CreatorPage() {
       isWaitingOracleResponse: oracleResponses.length == userInteractions.length,
     };
   }, [isBranchContentLoaded, oracleResponses, userInteractions]);
+
+  const [previoudOracleResponseCount, setPrevioudOracleResponseCount] = useState(0);
+  useEffect(() => {
+    if (previoudOracleResponseCount != oracleResponses.length) {
+      setPrevioudOracleResponseCount(oracleResponses.length);
+      setBranchLog(messageForWaitingUserInteraction);
+      console.log("content updated!");
+    }
+  }, [previoudOracleResponseCount, branchContent, oracleResponses, userInteractions]);
 
   const [interactionContent, setInteractionContent] = useState("");
 
@@ -189,7 +205,7 @@ export default function CreatorPage() {
   }, [rootQueryLoading, rootQueryResult]);
 
   useEffect(() => {
-    console.log("branchQueryResult", branchQueryResult, selectedRootTokenId);
+    // console.log("branchQueryResult", branchQueryResult, selectedRootTokenId);
     if (!branchQueryResult) {
       return;
     }
@@ -204,11 +220,9 @@ export default function CreatorPage() {
         if (branchContentId.gt(0)) {
           const rootTokenId = await contract.rootTokenIds(branchContentId);
           if (!ethers.BigNumber.from(stories[selectedStoryRootIndex as number].tokenId).eq(rootTokenId)) {
-            throw new Error("Token Id mismatch!!");
+            throw new Error("You are creating different token, please cancel that or use different account to test.");
           }
           const [, oracleResponses, userInteractions] = await contract.getContent(branchContentId);
-          console.log(oracleResponses);
-          console.log(userInteractions);
           setIsBranchContentLoaeded(true);
           setOracleResponses(oracleResponses);
           setUserInteractions(userInteractions);
@@ -312,6 +326,60 @@ export default function CreatorPage() {
             </div>
           </div>
         </div>
+      </div>
+    );
+  };
+
+  const [steps, setSteps] = useState<any>([]);
+  const StepModalContent = ({ steps }: any) => {
+    const allStepsCompleted = steps.every((step: any) => step.status === "complete");
+    return (
+      <div className="flex flex-col">
+        {steps.map((step: any, index: number) => (
+          <div key={index} className="mb-4">
+            <div className={`flex items-center text-sm ${index !== steps.length - 1 ? "mb-2" : ""}`}>
+              <span
+                className={`h-8 w-8 rounded-full flex items-center justify-center ${
+                  step.status === "complete"
+                    ? "bg-green-500"
+                    : step.status === "current"
+                    ? "bg-blue-500"
+                    : "bg-gray-200"
+                }`}
+              >
+                {step.status === "complete" ? (
+                  <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                ) : (
+                  index + 1
+                )}
+              </span>
+              <div className="ml-4">
+                <p className={`font-semibold ${step.status === "current" ? "text-blue-600" : "text-gray-900"}`}>
+                  {step.name}
+                </p>
+                <p className={`text-xs ${step.status === "current" ? "text-blue-500" : "text-gray-500"}`}>
+                  {step.description}
+                </p>
+              </div>
+            </div>
+            {index !== steps.length - 1 && (
+              <div className="ml-4 pl-1">
+                <div className="h-full w-0.5 bg-gray-300"></div>
+              </div>
+            )}
+          </div>
+        ))}
+        <button
+          className="mt-4 w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-md font-bold text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none disabled:bg-indigo-300 disabled:cursor-not-allowed disabled:opacity-50"
+          disabled={!allStepsCompleted}
+          onClick={() => {
+            window.location.reload();
+          }}
+        >
+          Close
+        </button>
       </div>
     );
   };
@@ -498,7 +566,36 @@ export default function CreatorPage() {
                             creatingStoryRootContent.length > 10000
                           }
                           onClick={async () => {
+                            let steps = [
+                              {
+                                name: "Upload content",
+                                description:
+                                  "ETHStorage SDK helps to encode content into blob and upload to EIP-4844 blob storage",
+                                status: "upcoming",
+                              },
+                              {
+                                name: "Waiting upload tx confirmation",
+                                description: "Upload tx is going to be confirmed on-chain soon",
+                                status: "upcoming",
+                              },
+                              {
+                                name: "Mint NFT and Register as IP",
+                                description:
+                                  "Our custom contract helps you to mint NFT and register as IP in Story Protocol in one transaction!",
+                                status: "upcoming",
+                              },
+                              {
+                                name: "Waiting mint tx confirmation",
+                                description: "Mint tx is going to be confirmed on-chain soon",
+                                status: "upcoming",
+                              },
+                            ];
+                            steps[0].status = "current";
+                            setModalContent(() => <StepModalContent steps={steps} />);
+                            setIsModalOpen(true);
+
                             console.log("start create story root...");
+
                             const url = `${process.env.NEXT_PUBLIC_APP_URL}/api/upload`;
                             const options = {
                               method: "POST",
@@ -526,10 +623,20 @@ export default function CreatorPage() {
                             if (!data) {
                               return;
                             }
+                            steps[0].status = "complete";
+                            steps[1].status = "current";
+                            setModalContent(() => <StepModalContent steps={steps} />);
+
                             const { data: ethstorageUloadResponse } = data;
                             console.log("ethstorageUloadResponse", ethstorageUloadResponse);
 
                             console.log("waiting upload blob tx is confirmed...");
+                            const provider = new ethers.providers.JsonRpcProvider(sepoliaRPC);
+                            await provider.waitForTransaction(ethstorageUloadResponse.txHash);
+
+                            steps[1].status = "complete";
+                            steps[2].status = "current";
+                            setModalContent(() => <StepModalContent steps={steps} />);
 
                             console.log("mint root nft and register in story protocol...");
                             const contract = new ethers.Contract(contentNFTAddress, contentNFTAbi, signer);
@@ -539,8 +646,16 @@ export default function CreatorPage() {
                               policyId,
                               licenceAmount
                             );
-                            console.log("done!!");
+
+                            steps[2].status = "complete";
+                            steps[3].status = "current";
+                            setModalContent(() => <StepModalContent steps={steps} />);
+
+                            await tx.wait();
+                            steps[3].status = "complete";
+                            setModalContent(() => <StepModalContent steps={steps} />);
                             console.log(tx.hash);
+                            console.log("done!!");
                           }}
                         >
                           Create
@@ -749,6 +864,9 @@ export default function CreatorPage() {
                               );
                               const tx = await contract.startBranchContent(tokenId);
                               console.log(tx);
+                              setBranchLog(messageForWaitingTxConfirmation);
+                              await tx.wait();
+                              setBranchLog(messageForWaitingOracleResponse);
                             }}
                           >
                             Start
@@ -771,7 +889,8 @@ export default function CreatorPage() {
                                 isWaitingOracleResponse ||
                                 !isUserInteractionRequired ||
                                 !interactionContent ||
-                                interactionContent.length > 120
+                                interactionContent.length > 120 ||
+                                branchLog != messageForWaitingUserInteraction
                               }
                               onClick={async () => {
                                 const tokenId = stories[selectedStoryRootIndex].tokenId;
@@ -783,6 +902,9 @@ export default function CreatorPage() {
                                 const tx = await contract.interactFromCreator(interactionContent);
                                 console.log(tx);
                                 setInteractionContent("");
+                                setBranchLog(messageForWaitingTxConfirmation);
+                                await tx.wait();
+                                setBranchLog(messageForWaitingOracleResponse);
                               }}
                             >
                               Send
@@ -793,7 +915,11 @@ export default function CreatorPage() {
                           <div className="flex space-x-4">
                             <button
                               className="w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-md font-medium text-black bg-gray-300 hover:bg-gray-400 focus:outline-none disabled:bg-gray-200 disabled:cursor-not-allowed disabled:opacity-50"
-                              disabled={isWaitingOracleResponse || !isUserInteractionRequired}
+                              disabled={
+                                isWaitingOracleResponse ||
+                                !isUserInteractionRequired ||
+                                branchLog != messageForWaitingUserInteraction
+                              }
                               onClick={async () => {
                                 const contract = new ethers.Contract(
                                   storyBranchMinterL1Address,
@@ -808,7 +934,11 @@ export default function CreatorPage() {
                             </button>
                             <button
                               className="w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-md font-bold text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none disabled:bg-indigo-300 disabled:cursor-not-allowed disabled:opacity-50"
-                              disabled={isWaitingOracleResponse || !isUserInteractionRequired}
+                              disabled={
+                                isWaitingOracleResponse ||
+                                !isUserInteractionRequired ||
+                                branchLog != messageForWaitingUserInteraction
+                              }
                               onClick={async () => {
                                 const contract = new ethers.Contract(
                                   storyBranchMinterL1Address,
@@ -823,6 +953,11 @@ export default function CreatorPage() {
                             </button>
                           </div>
                         )}
+                        <div className="text-center mt-1">
+                          <p className="text-gray-400 font-medium text-xs">
+                            {!isBranchContentLoaded ? "Loading the on-chain TRPG interaction history..." : branchLog}
+                          </p>
+                        </div>
                       </div>
                     </div>
                   )}
@@ -833,12 +968,7 @@ export default function CreatorPage() {
         </>
       )}
       {isModalOpen && (
-        <div
-          className="fixed inset-0 bg-black bg-opacity-30 backdrop-blur-sm flex justify-center items-center p-4"
-          onClick={() => {
-            setIsModalOpen(false);
-          }}
-        >
+        <div className="fixed inset-0 bg-black bg-opacity-30 backdrop-blur-sm flex justify-center items-center p-4">
           <div className="bg-white p-6 rounded-md shadow-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
             {modalContent}
           </div>

@@ -11,6 +11,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ApolloProvider } from "@apollo/client";
 import apolloClient from "@/lib/apollo-client";
 
+import { createReactClient, studioProvider } from "@livepeer/react";
+
 const config = getDefaultConfig({
   appName: "App",
   projectId: process.env.NEXT_PUBLIC_PROJECT_ID || "",
