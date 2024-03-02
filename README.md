@@ -1,5 +1,7 @@
 # Story Telller
 
+![create-branch](./docs/create-branch.png)
+
 ## Tagline
 
 On-chain interactive content generatioin and incentivised by IPFi.
