@@ -46,6 +46,10 @@ The Graph tracks NFTs created within the gaming smart contract, simplifying deve
 
 https://2024-eth-denver.vercel.app/
 
+### Pitch Deck
+
+https://www.canva.com/design/DAF-NEhA-gc/svbMlGQO8MVoXW-XCQ9NGw/edit?utm_content=DAF-NEhA-gc&utm_campaign=designshare&utm_medium=link2&utm_source=sharebutton
+
 ### Github
 
 https://github.com/taijusanagi/2024-eth-denver
