@@ -29,6 +29,15 @@ import {
 } from "@/lib/contracts";
 import { mockRootNFTs } from "@/lib/mock";
 import { IERC5018Abi } from "@/lib/ethstorage";
+import axios from "axios";
+import {
+  QueryRequest,
+  PerChainQueryRequest,
+  EthCallQueryRequest,
+  EthCallData,
+  QueryProxyQueryResponse,
+  QueryProxyMock,
+} from "@wormhole-foundation/wormhole-query-sdk";
 
 // content name is modified in backend like ${name}-1709156261098.txt
 // so this can be removed in frontend for better display
@@ -466,7 +475,7 @@ export default function CreatorPage() {
   };
 
   const CreateVideoModal = ({ oracleResponses }: any) => {
-    const { reward } = useReward("rewardId");
+    const { reward } = useReward("rewardId", "confetti");
 
     const [style, setStyle] = useState("dark fantasy");
     const [isStartVideo, setIsStartVideo] = useState(false);

@@ -8,6 +8,16 @@ import { chainlinkConfig, functionRouterABI, script } from "../lib/chainlink";
 import { storyProtocolConfig } from "../lib/story-protocol";
 
 import { nftName, nftSymbol, nullBytes32, nullAddress } from "../lib/constants";
+import axios from "axios";
+import {
+  EthCallData,
+  EthCallQueryRequest,
+  PerChainQueryRequest,
+  QueryProxyMock,
+  QueryRequest,
+  signaturesToEvmStruct,
+} from "@wormhole-foundation/wormhole-query-sdk";
+import { wormholeSepoliaChainId, wormholeSepoliaContractAddress } from "../lib/wormhole";
 
 describe("Integration", function () {
   it("Should work with mock", async function () {
@@ -176,5 +186,45 @@ describe("Integration", function () {
     // this function calls chainlink functions send request
     await storyBranchMinterL1.write.startBranchContent([rootTokenId]);
     // not testing the oracle callback part here
+  });
+
+  it.skip("Should work with wormhole query", async function () {
+    const [signer] = await hre.viem.getWalletClients();
+    const [signerAddress] = await signer.getAddresses();
+    const contract = await hre.viem.deployContract("QueryDemo", [
+      signerAddress,
+      wormholeSepoliaContractAddress,
+      wormholeSepoliaChainId,
+    ]);
+    const rpc = "https://ethereum.publicnode.com";
+    const latestBlock: string = (
+      await axios.post(rpc, {
+        method: "eth_getBlockByNumber",
+        params: ["latest", false],
+        id: 1,
+        jsonrpc: "2.0",
+      })
+    ).data?.result?.number;
+    // console.log("latestBlock", latestBlock);
+    const callData: EthCallData = {
+      to: "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2", // WETH
+      data: "0x18160ddd", // web3.eth.abi.encodeFunctionSignature("totalSupply()")
+    };
+    const request = new QueryRequest(
+      0, // nonce
+      [
+        new PerChainQueryRequest(
+          2, // Ethereum Wormhole Chain ID
+          new EthCallQueryRequest(latestBlock, [callData]),
+        ),
+      ],
+    );
+    const mock = new QueryProxyMock({ 2: rpc });
+    const mockData: any = await mock.mock(request);
+    console.log(signaturesToEvmStruct(mockData.signatures));
+    console.log(mockData.bytes);
+    await contract.write.updateCounters([`0x${mockData.bytes}`, signaturesToEvmStruct(mockData.signatures) as any]);
+    // console.log(mockData);
+    // contract.
   });
 });
